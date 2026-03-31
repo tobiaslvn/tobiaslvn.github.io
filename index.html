@@ -3,18 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tobias Levin — Photography</title>
+    <title>Tobias Levin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f5f2ed;
-            --text: #1a1a1a;
-            --text-light: #6b6560;
-            --accent: #c4653a;
-            --border: #d9d4cd;
-            --card-bg: #eae6df;
+            --bg: #0b0b0b;
+            --text: #d6d1ca;
+            --text-dim: #6b665f;
+            --accent: #d6d1ca;
+            --link: #d6d1ca;
+            --link-hover: #fff;
         }
 
         * {
@@ -23,452 +23,96 @@
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            font-family: 'DM Sans', sans-serif;
-            background-color: var(--bg);
+            font-family: 'Work Sans', sans-serif;
+            background: var(--bg);
             color: var(--text);
             font-weight: 300;
-            line-height: 1.6;
             -webkit-font-smoothing: antialiased;
-        }
-
-        /* ── NAV ── */
-        nav {
-            position: fixed;
-            top: 0;
-            width: 100%;
-            padding: 1.5rem 3rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            z-index: 100;
-            background: rgba(245, 242, 237, 0.85);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-        }
-
-        nav .logo {
-            font-family: 'Instrument Serif', serif;
-            font-size: 1.25rem;
-            letter-spacing: -0.01em;
-            color: var(--text);
-            text-decoration: none;
-        }
-
-        nav .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        nav .nav-links a {
-            color: var(--text-light);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 400;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            transition: color 0.3s;
-        }
-
-        nav .nav-links a:hover {
-            color: var(--accent);
-        }
-
-        /* ── HERO ── */
-        .hero {
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            padding: 8rem 3rem 4rem;
-            max-width: 900px;
-        }
-
-        .hero h1 {
-            font-family: 'Instrument Serif', serif;
-            font-size: clamp(3rem, 7vw, 5.5rem);
-            font-weight: 400;
-            line-height: 1.08;
-            letter-spacing: -0.03em;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero h1 em {
-            font-style: italic;
-            color: var(--accent);
-        }
-
-        .hero p {
-            font-size: 1.15rem;
-            color: var(--text-light);
-            max-width: 480px;
-            line-height: 1.7;
-        }
-
-        .scroll-hint {
-            margin-top: 4rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: var(--text-light);
-            font-size: 0.8rem;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            animation: float 2.5s ease-in-out infinite;
-        }
-
-        .scroll-hint .line {
-            width: 40px;
-            height: 1px;
-            background: var(--border);
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(6px); }
-        }
-
-        /* ── WORK GRID ── */
-        .work {
-            padding: 4rem 3rem 6rem;
-        }
-
-        .section-label {
-            font-size: 0.8rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            color: var(--text-light);
-            margin-bottom: 3rem;
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .section-label::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .grid-item {
-            position: relative;
-            aspect-ratio: 4 / 5;
-            overflow: hidden;
-            background: var(--card-bg);
-            cursor: pointer;
-        }
-
-        .grid-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), filter 0.6s;
-        }
-
-        .grid-item:hover img {
-            transform: scale(1.04);
-        }
-
-        .grid-item .overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 2rem;
-            background: linear-gradient(to top, rgba(20, 18, 16, 0.7), transparent);
-            opacity: 0;
-            transition: opacity 0.4s;
-        }
-
-        .grid-item:hover .overlay {
-            opacity: 1;
-        }
-
-        .overlay h3 {
-            font-family: 'Instrument Serif', serif;
-            font-size: 1.4rem;
-            color: #fff;
-            font-weight: 400;
-        }
-
-        .overlay span {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.7);
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        /* ── PLACEHOLDER IMAGES ── */
-        .placeholder-img {
-            width: 100%;
-            height: 100%;
-            display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Instrument Serif', serif;
-            font-size: 1.5rem;
-            color: var(--text-light);
-            background: var(--card-bg);
-            position: relative;
         }
 
-        .placeholder-img::before {
-            content: '';
-            position: absolute;
-            inset: 1.5rem;
-            border: 1px solid var(--border);
-        }
-
-        /* ── ABOUT ── */
-        .about {
-            padding: 6rem 3rem;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4rem;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-
-        .about h2 {
-            font-family: 'Instrument Serif', serif;
-            font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 400;
-            letter-spacing: -0.02em;
-            line-height: 1.15;
-        }
-
-        .about p {
-            color: var(--text-light);
-            font-size: 1.05rem;
-            line-height: 1.8;
-        }
-
-        /* ── CONTACT / FOOTER ── */
-        .contact {
-            padding: 6rem 3rem;
-            border-top: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .contact h2 {
-            font-family: 'Instrument Serif', serif;
-            font-size: clamp(2rem, 4vw, 3rem);
-            font-weight: 400;
-            letter-spacing: -0.02em;
-            margin-bottom: 1rem;
-        }
-
-        .contact p {
-            color: var(--text-light);
-            margin-bottom: 2.5rem;
-            font-size: 1.05rem;
-        }
-
-        .contact-links {
-            display: flex;
-            justify-content: center;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.85rem 1.8rem;
-            border: 1px solid var(--text);
-            color: var(--text);
-            text-decoration: none;
-            font-size: 0.85rem;
-            font-weight: 400;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            transition: all 0.3s;
-        }
-
-        .btn:hover {
+        ::selection {
             background: var(--text);
             color: var(--bg);
         }
 
-        .btn-accent {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff;
+        .container {
+            max-width: 540px;
+            padding: 3rem 2rem;
         }
 
-        .btn-accent:hover {
-            background: #a8532e;
-            border-color: #a8532e;
-        }
-
-        .btn svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        footer {
-            padding: 2rem 3rem;
-            text-align: center;
-            color: var(--text-light);
+        .name {
             font-size: 0.8rem;
-            letter-spacing: 0.02em;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            color: var(--text-dim);
+            margin-bottom: 2.5rem;
         }
 
-        /* ── ANIMATIONS ── */
-        .fade-in {
-            opacity: 0;
-            transform: translateY(24px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
+        .bio {
+            font-size: 1.05rem;
+            line-height: 1.75;
+            font-weight: 300;
+            color: var(--text);
+            margin-bottom: 2.5rem;
         }
 
-        .fade-in.visible {
-            opacity: 1;
-            transform: translateY(0);
+        .bio a {
+            color: var(--link);
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: var(--text-dim);
+            transition: text-decoration-color 0.3s;
         }
 
-        /* ── RESPONSIVE ── */
-        @media (max-width: 768px) {
-            nav { padding: 1.2rem 1.5rem; }
-            .hero { padding: 7rem 1.5rem 3rem; }
-            .work { padding: 3rem 1.5rem 4rem; }
-            .grid { grid-template-columns: 1fr; }
-            .about {
-                grid-template-columns: 1fr;
-                padding: 4rem 1.5rem;
-                gap: 1.5rem;
-            }
-            .contact { padding: 4rem 1.5rem; }
-            .contact-links { flex-direction: column; align-items: center; }
-            footer { padding: 2rem 1.5rem; }
+        .bio a:hover {
+            text-decoration-color: var(--link-hover);
+            color: var(--link-hover);
+        }
+
+        .links {
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .links a {
+            font-size: 0.8rem;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            color: var(--text-dim);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .links a:hover {
+            color: var(--link-hover);
+        }
+
+        .links span {
+            color: var(--text-dim);
+            opacity: 0.3;
+            user-select: none;
         }
     </style>
 </head>
 <body>
-
-    <!-- NAV -->
-    <nav>
-        <a href="#" class="logo">Tobias Levin</a>
-        <div class="nav-links">
-            <a href="#work">Work</a>
-            <a href="#about">About</a>
-            <a href="#contact">Contact</a>
-        </div>
-    </nav>
-
-    <!-- HERO -->
-    <section class="hero">
-        <h1>Capturing light,<br><em>telling stories.</em></h1>
-        <p>Photographer & visual artist based in Copenhagen. Exploring moments, textures, and the quiet poetry of everyday life.</p>
-        <div class="scroll-hint">
-            <span class="line"></span>
-            Scroll to explore
-        </div>
-    </section>
-
-    <!-- WORK -->
-    <section class="work" id="work">
-        <div class="section-label">Selected Work</div>
-        <div class="grid">
-            <div class="grid-item fade-in">
-                <div class="placeholder-img">Your photo here</div>
-                <div class="overlay">
-                    <span>Series 01</span>
-                    <h3>Project Title</h3>
-                </div>
-            </div>
-            <div class="grid-item fade-in">
-                <div class="placeholder-img">Your photo here</div>
-                <div class="overlay">
-                    <span>Series 02</span>
-                    <h3>Project Title</h3>
-                </div>
-            </div>
-            <div class="grid-item fade-in">
-                <div class="placeholder-img">Your photo here</div>
-                <div class="overlay">
-                    <span>Series 03</span>
-                    <h3>Project Title</h3>
-                </div>
-            </div>
-            <div class="grid-item fade-in">
-                <div class="placeholder-img">Your photo here</div>
-                <div class="overlay">
-                    <span>Series 04</span>
-                    <h3>Project Title</h3>
-                </div>
-            </div>
-            <div class="grid-item fade-in">
-                <div class="placeholder-img">Your photo here</div>
-                <div class="overlay">
-                    <span>Series 05</span>
-                    <h3>Project Title</h3>
-                </div>
-            </div>
-            <div class="grid-item fade-in">
-                <div class="placeholder-img">Your photo here</div>
-                <div class="overlay">
-                    <span>Series 06</span>
-                    <h3>Project Title</h3>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- ABOUT -->
-    <section class="about" id="about">
-        <h2 class="fade-in">A few words<br>about me</h2>
-        <p class="fade-in">
-            Write a bit about yourself here — what drives your photography, what subjects you're drawn to, and what you hope people feel when they see your work. Keep it personal and genuine. A few sentences is all you need.
+    <div class="container">
+        <p class="name">Tobias Levin</p>
+        <p class="bio">
+            Copenhagen. Designer, brand builder, cardist. Founder of <a href="https://anyoneworldwide.com" target="_blank">Anyone</a> — 150,000+ decks sold, redefining what a deck of cards can be. Co-organiser of <a href="https://cardistry-con.org" target="_blank">Cardistry-Con</a>. Currently teaching through <a href="https://tobiaslevin.com" target="_blank">Composing Packets</a>, an 8-week workshop on creating original cardistry. Fifteen years deep in the art of 52 pieces of paper. Brand identity, product design, photography, film — if it needs a point of view, that's where I work.
         </p>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="contact" id="contact">
-        <h2 class="fade-in">Get in touch</h2>
-        <p class="fade-in">Open for collaborations, commissions, and good conversations.</p>
-        <div class="contact-links fade-in">
-            <a href="mailto:your@email.com" class="btn btn-accent">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" /></svg>
-                Email
-            </a>
-            <a href="https://instagram.com/yourusername" target="_blank" class="btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                Instagram
-            </a>
-            <a href="https://x.com/yourusername" target="_blank" class="btn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4l6.5 8L4 20h2l5.5-6.8L16 20h4l-6.8-8.5L19.5 4h-2l-5.2 6.3L8 4H4z"/></svg>
-                Twitter / X
-            </a>
+        <div class="links">
+            <a href="mailto:your@email.com">Email</a>
+            <span>/</span>
+            <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
+            <span>/</span>
+            <a href="https://x.com/tobiaslvn" target="_blank">X</a>
         </div>
-    </section>
-
-    <footer>
-        &copy; 2026 Tobias Levin. All rights reserved.
-    </footer>
-
-    <!-- SCROLL ANIMATIONS -->
-    <script>
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('visible');
-                }
-            });
-        }, { threshold: 0.15 });
-
-        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
-    </script>
+    </div>
 </body>
 </html>
