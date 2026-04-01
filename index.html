@@ -2,21 +2,12 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Tobias Levin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0b0b0b;
-            --text: #d6d1ca;
-            --text-dim: #6b665f;
-            --accent: #d6d1ca;
-            --link: #d6d1ca;
-            --link-hover: #fff;
-        }
-
         * {
             margin: 0;
             padding: 0;
@@ -25,94 +16,219 @@
 
         body {
             font-family: 'Work Sans', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            font-weight: 300;
-            -webkit-font-smoothing: antialiased;
+            background: #fff;
+            color: #000;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            cursor: default;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
         }
 
         ::selection {
-            background: var(--text);
-            color: var(--bg);
+            background: #000;
+            color: #fff;
         }
 
-        .container {
-            max-width: 540px;
-            padding: 3rem 2rem;
-        }
-
-        .name {
-            font-size: 0.8rem;
+        .content {
+            text-align: center;
+            font-size: 6px;
             font-weight: 400;
-            letter-spacing: 0.08em;
-            color: var(--text-dim);
-            margin-bottom: 2.5rem;
-        }
-
-        .bio {
-            font-size: 1.05rem;
-            line-height: 1.75;
-            font-weight: 300;
-            color: var(--text);
-            margin-bottom: 2.5rem;
-        }
-
-        .bio a {
-            color: var(--link);
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            text-decoration-color: var(--text-dim);
-            transition: text-decoration-color 0.3s;
-        }
-
-        .bio a:hover {
-            text-decoration-color: var(--link-hover);
-            color: var(--link-hover);
-        }
-
-        .links {
-            display: flex;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .links a {
-            font-size: 0.8rem;
-            font-weight: 400;
-            letter-spacing: 0.04em;
-            color: var(--text-dim);
-            text-decoration: none;
-            transition: color 0.3s;
-        }
-
-        .links a:hover {
-            color: var(--link-hover);
-        }
-
-        .links span {
-            color: var(--text-dim);
-            opacity: 0.3;
+            letter-spacing: 0.1em;
+            line-height: 1;
             user-select: none;
+            white-space: nowrap;
+        }
+
+        .content a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        .lens {
+            position: fixed;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 0;
+            z-index: 10;
+            background: #fff;
+            will-change: transform, opacity;
+            transition: opacity 0.2s ease;
+        }
+
+        .lens.visible {
+            opacity: 1;
+        }
+
+        .lens-content {
+            position: absolute;
+            text-align: center;
+            font-family: 'Work Sans', sans-serif;
+            font-size: 6px;
+            font-weight: 400;
+            letter-spacing: 0.1em;
+            line-height: 1;
+            color: #000;
+            transform-origin: center center;
+            white-space: nowrap;
+        }
+
+        .lens-content a {
+            color: #000;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                font-size: 5px;
+            }
+            .lens-content {
+                font-size: 5px;
+            }
+            .lens {
+                width: 200px;
+                height: 200px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <p class="name">Tobias Levin</p>
-        <p class="bio">
-            Copenhagen. Designer, brand builder, cardist. Founder of <a href="https://anyoneworldwide.com" target="_blank">Anyone</a> — 150,000+ decks sold, redefining what a deck of cards can be. Co-organiser of <a href="https://cardistry-con.org" target="_blank">Cardistry-Con</a>. Currently teaching through <a href="https://tobiaslevin.com" target="_blank">Composing Packets</a>, an 8-week workshop on creating original cardistry. Fifteen years deep in the art of 52 pieces of paper. Brand identity, product design, photography, film — if it needs a point of view, that's where I work.
-        </p>
-        <div class="links">
-            <a href="mailto:your@email.com">Email</a>
-            <span>/</span>
-            <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
-            <span>/</span>
-            <a href="https://x.com/tobiaslvn" target="_blank">X</a>
-        </div>
+    <div class="content" id="content">TOBIAS LEVIN. Designer, based in Copenhagen. <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>&nbsp;/&nbsp;<a href="mailto:More@tobiaslevin.com">More@tobiaslevin.com</a></div>
+
+    <div class="lens" id="lens">
+        <div class="lens-content" id="lensContent">TOBIAS LEVIN. Designer, based in Copenhagen. <a href="https://instagram.com/tobiaslvn">Instagram</a>&nbsp;/&nbsp;<a href="mailto:More@tobiaslevin.com">More@tobiaslevin.com</a></div>
     </div>
+
+    <script>
+        const lens = document.getElementById('lens');
+        const lensContent = document.getElementById('lensContent');
+        const content = document.getElementById('content');
+        const scale = 10;
+
+        // Smooth interpolation
+        let currentX = 0, currentY = 0;
+        let targetX = 0, targetY = 0;
+        let animating = false;
+        let isVisible = false;
+
+        function lerp(a, b, t) {
+            return a + (b - a) * t;
+        }
+
+        function positionLens(cx, cy) {
+            const lensW = lens.offsetWidth;
+            const lensH = lens.offsetHeight;
+
+            const rect = content.getBoundingClientRect();
+            const contentCenterX = rect.left + rect.width / 2;
+            const contentCenterY = rect.top + rect.height / 2;
+
+            const offsetX = (lensW / 2) - (cx - contentCenterX) * scale - (rect.width * scale / 2);
+            const offsetY = (lensH / 2) - (cy - contentCenterY) * scale - (rect.height * scale / 2);
+
+            lens.style.transform = `translate(${cx - lensW / 2}px, ${cy - lensH / 2}px)`;
+
+            lensContent.style.transform = `scale(${scale})`;
+            lensContent.style.left = offsetX + 'px';
+            lensContent.style.top = offsetY + 'px';
+            lensContent.style.width = rect.width + 'px';
+        }
+
+        function animate() {
+            if (!isVisible) {
+                animating = false;
+                return;
+            }
+
+            currentX = lerp(currentX, targetX, 0.12);
+            currentY = lerp(currentY, targetY, 0.12);
+
+            positionLens(currentX, currentY);
+
+            animating = true;
+            requestAnimationFrame(animate);
+        }
+
+        function startAnimation() {
+            if (!animating) {
+                animating = true;
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function showLens(x, y) {
+            if (!isVisible) {
+                currentX = x;
+                currentY = y;
+            }
+            targetX = x;
+            targetY = y;
+            isVisible = true;
+            lens.classList.add('visible');
+            startAnimation();
+        }
+
+        function hideLens() {
+            isVisible = false;
+            lens.classList.remove('visible');
+        }
+
+        // Mouse
+        document.addEventListener('mousemove', (e) => {
+            showLens(e.clientX, e.clientY);
+        });
+
+        document.addEventListener('mouseleave', hideLens);
+
+        // Click through to links
+        document.addEventListener('click', (e) => {
+            const elements = document.elementsFromPoint(e.clientX, e.clientY);
+            for (const el of elements) {
+                if (el.tagName === 'A' && content.contains(el)) {
+                    if (el.href.startsWith('mailto:')) {
+                        window.location.href = el.href;
+                    } else {
+                        window.open(el.href, '_blank');
+                    }
+                    break;
+                }
+            }
+        });
+
+        // Touch
+        document.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            showLens(touch.clientX, touch.clientY);
+        }, { passive: true });
+
+        document.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            targetX = touch.clientX;
+            targetY = touch.clientY;
+        }, { passive: false });
+
+        document.addEventListener('touchend', (e) => {
+            // Check if finger lifted over a link
+            const elements = document.elementsFromPoint(currentX, currentY);
+            for (const el of elements) {
+                if (el.tagName === 'A' && content.contains(el)) {
+                    if (el.href.startsWith('mailto:')) {
+                        window.location.href = el.href;
+                    } else {
+                        window.open(el.href, '_blank');
+                    }
+                    break;
+                }
+            }
+            hideLens();
+        });
+    </script>
 </body>
 </html>
