@@ -8,12 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Instrument Sans', sans-serif;
             background: #fff;
@@ -23,128 +18,112 @@
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
             -webkit-user-select: none;
-            -moz-user-select: none;
-            -ms-user-select: none;
             user-select: none;
         }
 
-        /* ── CARD (desktop: tiny, mobile: readable) ── */
         .card {
             position: fixed;
-            top: 50px;
-            left: 50px;
+            top: 30px;
+            left: 30px;
             font-size: 13px;
             font-weight: 400;
             line-height: 1.55;
-            letter-spacing: normal;
         }
-
-        .card-name {
-            font-weight: 500;
-            margin-bottom: 0.9em;
-        }
-
+        .card-name { font-weight: 500; margin-bottom: 0.9em; }
         .card p { color: #000; }
         .card a { color: #000; }
-
-        .card .contact {
-            margin-top: 0.9em;
-        }
-
-        .card .contact a {
+        .card .contact { margin-top: 0.9em; }
+        .card .contact a { text-decoration: underline; text-underline-offset: 2px; }
+        .card .ig { margin-top: 0.3em; }
+        .card .ig a { color: #999; text-decoration: none; }
+        .details-trigger {
             text-decoration: underline;
             text-underline-offset: 2px;
-        }
-
-        .card .ig {
-            margin-top: 0.3em;
-        }
-
-        .card .ig a {
-            color: #999;
-            text-decoration: none;
+            cursor: pointer;
             transition: color 0.3s;
         }
+        .details-trigger:hover { color: #999; }
 
-        /* ── ZOOM (desktop only) ── */
+        .hidden-card {
+            position: fixed;
+            top: 30px;
+            left: 30px;
+            font-size: 13px;
+            font-weight: 400;
+            line-height: 1.55;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .hidden-card.active { pointer-events: auto; }
+        .hidden-card .card-name { font-weight: 500; margin-bottom: 0.9em; }
+        .hidden-card p { color: #000; }
+        .hidden-card a { color: #000; text-decoration: none; }
+        .hidden-card .anyone-link { color: #666; text-decoration: none; }
+        .hidden-card .contact { margin-top: 0.9em; }
+        .hidden-card .contact a { color: #666; text-decoration: none; }
+        .hidden-card .ig { margin-top: 0.3em; }
+        .hidden-card .ig a { color: #999; text-decoration: none; }
+        .hidden-card .details-trigger-ghost {
+            color: #666;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
         .lens {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 500px;
-            height: 500px;
+            width: 650px;
+            height: 650px;
             border-radius: 50%;
             pointer-events: none;
             overflow: hidden;
             z-index: 10;
             opacity: 0;
             transition: opacity 0.35s ease;
-            -webkit-mask-image: radial-gradient(circle, black 30%, transparent 70%);
-            mask-image: radial-gradient(circle, black 30%, transparent 70%);
+            -webkit-mask-image: radial-gradient(circle, black 35%, transparent 70%);
+            mask-image: radial-gradient(circle, black 35%, transparent 70%);
             aspect-ratio: 1 / 1;
         }
+        .lens.visible { opacity: 1; }
 
-        .lens.visible {
-            opacity: 1;
-        }
-
-        .lens-card {
+        .lens-inner {
             position: absolute;
             font-family: 'Instrument Sans', sans-serif;
             font-weight: 400;
             line-height: 1.55;
-            letter-spacing: normal;
             color: #000;
             white-space: nowrap;
             will-change: transform, filter;
         }
-
-        .lens-card .card-name {
-            font-weight: 500;
-            margin-bottom: 0.9em;
-        }
-
-        .lens-card a { color: #000; }
-
-        .lens-card .contact {
-            margin-top: 0.9em;
-        }
-
-        .lens-card .contact a {
-            text-decoration: underline;
-            text-underline-offset: 3px;
-        }
-
-        .lens-card .ig {
-            margin-top: 0.3em;
-        }
-
-        .lens-card .ig a {
-            color: #999;
+        .lens-inner .card-name { font-weight: 500; margin-bottom: 0.9em; }
+        .lens-inner a { color: #000; text-decoration: none; }
+        .lens-inner .anyone-link {
             text-decoration: none;
+            color: #666;
+            transition: color 0.3s;
         }
+        .lens-inner .anyone-link:hover { color: #333; }
+        .lens-inner .contact { margin-top: 0.9em; }
+        .lens-inner .contact a { text-decoration: none; color: #666; }
+        .lens-inner .ig { margin-top: 0.3em; }
+        .lens-inner .ig a { color: #999; text-decoration: none; }
 
-        /* ── MOBILE ── */
         @media (max-width: 768px) {
             .card {
                 position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                font-size: 16px;
+                top: auto;
+                bottom: 40px;
+                left: 20px;
+                transform: none;
+                font-size: 14px;
                 line-height: 1.6;
             }
-
-            .card .ig a {
-                color: #999;
-            }
-        }
-
-        @media (pointer: coarse) {
-            .lens {
-                display: none;
-            }
+            .lens { display: none; }
+            .hidden-card { display: none; }
+            .details-trigger { text-decoration: none; cursor: default; }
         }
     </style>
 </head>
@@ -152,10 +131,22 @@
 
     <div class="card" id="card">
         <div class="card-name">TOBIAS LEVIN</div>
-        <p>Designer, focused on details.</p>
+        <p>Designer, focused on <span class="details-trigger" id="detailsTrigger">details</span>.</p>
         <p>Based in Copenhagen, often in Tokyo.</p>
         <div class="contact">
-            <p><a href="mailto:More@tobiaslevin.com">Email me</a> for consulting services.</p>
+            <p><a class="email-link" href="#">Email</a> me for consulting services.</p>
+        </div>
+        <div class="ig">
+            <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
+        </div>
+    </div>
+
+    <div class="hidden-card" id="hiddenCard">
+        <div class="card-name">TOBIAS LEVIN</div>
+        <p>Designer, focused on <span class="details-trigger-ghost" id="hiddenTrigger">details</span>.</p>
+        <p>Founder of <a href="https://anyoneworldwide.com" target="_blank" class="anyone-link">Anyone</a>, redefining what playing cards can be.</p>
+        <div class="contact">
+            <p><a class="email-link" href="#">Email</a> me for consulting services.</p>
         </div>
         <div class="ig">
             <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
@@ -163,120 +154,103 @@
     </div>
 
     <div class="lens" id="lens">
-        <div class="lens-card" id="lensCard">
+        <div class="lens-inner" id="lensInner">
             <div class="card-name">TOBIAS LEVIN</div>
-            <p>Designer, focused on details.</p>
-            <p>Based in Copenhagen, often in Tokyo.</p>
+            <p>Designer, focused on <span>details</span>.</p>
+            <p>Founder of <a href="https://anyoneworldwide.com" target="_blank" class="anyone-link">Anyone</a>, redefining what playing cards can be.</p>
             <div class="contact">
-                <p><a href="mailto:More@tobiaslevin.com">Email me</a> for consulting services.</p>
+                <p><a class="email-link" href="#">Email</a> me for consulting services.</p>
             </div>
             <div class="ig">
-                <a href="https://instagram.com/tobiaslvn">Instagram</a>
+                <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
             </div>
         </div>
     </div>
 
     <script>
-        const lens = document.getElementById('lens');
-        const lensCard = document.getElementById('lensCard');
-        const card = document.getElementById('card');
-        const zoom = 12;
-        const proximityPadding = 40;
-
-        // Detect if device has a fine pointer (mouse) — use lens. Otherwise skip.
-        const hasPointer = window.matchMedia('(pointer: fine)').matches;
-        if (hasPointer) {
-
-            let mouseX = 0, mouseY = 0;
-            let smoothX = 0, smoothY = 0;
-            let prevSmoothX = 0, prevSmoothY = 0;
-            let active = false;
-
-            function lerp(a, b, t) { return a + (b - a) * t; }
-
-            function tick() {
-                if (!active) return;
-
-                smoothX = lerp(smoothX, mouseX, 0.1);
-                smoothY = lerp(smoothY, mouseY, 0.1);
-
-                const src = card.getBoundingClientRect();
-                const lensW = lens.offsetWidth;
-                const lensH = lens.offsetHeight;
-
-                const baseFontSize = parseFloat(getComputedStyle(card).fontSize);
-                lensCard.style.fontSize = (baseFontSize * zoom) + 'px';
-
-                const relX = smoothX - src.left;
-                const relY = smoothY - src.top;
-                const scaledX = relX * zoom;
-                const scaledY = relY * zoom;
-
-                const tx = (lensW / 2) - scaledX;
-                const ty = (lensH / 2) - scaledY;
-
-                const vx = (smoothX - prevSmoothX) * zoom;
-                const vy = (smoothY - prevSmoothY) * zoom;
-                const speed = Math.sqrt(vx * vx + vy * vy);
-                const blur = Math.min(speed * 0.15, 18);
-
-                prevSmoothX = smoothX;
-                prevSmoothY = smoothY;
-
-                lensCard.style.transform = `translate(${tx}px, ${ty}px)`;
-                lensCard.style.filter = blur > 0.5 ? `blur(${blur}px)` : 'none';
-
-                requestAnimationFrame(tick);
-            }
-
-            function show(x, y) {
-                mouseX = x; mouseY = y;
-                if (!active) {
-                    smoothX = x; smoothY = y;
-                    prevSmoothX = x; prevSmoothY = y;
-                    active = true;
-                    lens.classList.add('visible');
-                    requestAnimationFrame(tick);
-                }
-            }
-
-            function hide() {
-                active = false;
-                lens.classList.remove('visible');
-            }
-
-            function isNearCard() {
-                const src = card.getBoundingClientRect();
-                return (
-                    mouseX >= src.left - proximityPadding &&
-                    mouseX <= src.right + proximityPadding &&
-                    mouseY >= src.top - proximityPadding &&
-                    mouseY <= src.bottom + proximityPadding
-                );
-            }
-
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
-                if (isNearCard()) {
-                    if (!active) show(e.clientX, e.clientY);
-                } else {
-                    if (active) hide();
-                }
-            });
-
-            document.addEventListener('mouseleave', hide);
-
-            document.addEventListener('click', (e) => {
-                const els = document.elementsFromPoint(e.clientX, e.clientY);
-                for (const el of els) {
-                    if (el.tagName === 'A' && card.contains(el)) {
-                        el.href.startsWith('mailto:') ? window.location.href = el.href : window.open(el.href, '_blank');
-                        break;
-                    }
-                }
-            });
+        // Set email links via JS to avoid Cloudflare mangling
+        var emailLinks = document.querySelectorAll('.email-link');
+        for (var i = 0; i < emailLinks.length; i++) {
+            emailLinks[i].href = 'mai' + 'lto:' + 'More' + '@' + 'tobiaslevin.com';
         }
+
+        var lens = document.getElementById('lens');
+        var lensInner = document.getElementById('lensInner');
+        var card = document.getElementById('card');
+        var hiddenCard = document.getElementById('hiddenCard');
+        var trigger = document.getElementById('detailsTrigger');
+        var hiddenTrigger = document.getElementById('hiddenTrigger');
+        var zoom = 16;
+        var mouseX = 0, mouseY = 0;
+        var smoothX = 0, smoothY = 0;
+        var prevSmoothX = 0, prevSmoothY = 0;
+        var active = false;
+        var enabled = false;
+
+        function lerp(a, b, t) { return a + (b - a) * t; }
+
+        function tick() {
+            if (!active) return;
+            smoothX = lerp(smoothX, mouseX, 0.1);
+            smoothY = lerp(smoothY, mouseY, 0.1);
+
+            var src = card.getBoundingClientRect();
+            var lensW = lens.offsetWidth;
+            var lensH = lens.offsetHeight;
+            var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
+            lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
+
+            var relX = smoothX - src.left;
+            var relY = smoothY - src.top;
+            var tx = (lensW / 2) - (relX * zoom);
+            var ty = (lensH / 2) - (relY * zoom);
+
+            var vx = (smoothX - prevSmoothX) * zoom;
+            var vy = (smoothY - prevSmoothY) * zoom;
+            var speed = Math.sqrt(vx * vx + vy * vy);
+            var blur = Math.min(speed * 0.15, 18);
+            prevSmoothX = smoothX;
+            prevSmoothY = smoothY;
+
+            lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+            lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
+            requestAnimationFrame(tick);
+        }
+
+        function activate() {
+            enabled = true;
+            active = true;
+            smoothX = mouseX; smoothY = mouseY;
+            prevSmoothX = mouseX; prevSmoothY = mouseY;
+            lens.classList.add('visible');
+            hiddenCard.classList.add('active');
+            requestAnimationFrame(tick);
+        }
+
+        function deactivate() {
+            enabled = false;
+            active = false;
+            lens.classList.remove('visible');
+            hiddenCard.classList.remove('active');
+        }
+
+        function handleToggle(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (enabled) {
+                deactivate();
+            } else {
+                activate();
+            }
+        }
+
+        trigger.addEventListener('click', handleToggle);
+        hiddenTrigger.addEventListener('click', handleToggle);
+
+        document.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
     </script>
 </body>
 </html>
