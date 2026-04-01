@@ -22,13 +22,13 @@
             cursor: default;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
 
-        ::selection {
-            background: #000;
-            color: #fff;
-        }
-
+        /* ── CARD ── */
         .card {
             position: fixed;
             top: 50px;
@@ -37,7 +37,6 @@
             font-weight: 400;
             line-height: 1.55;
             letter-spacing: normal;
-            user-select: none;
         }
 
         .card-name {
@@ -88,6 +87,7 @@
             background: #fff;
             -webkit-mask-image: radial-gradient(circle, black 30%, transparent 70%);
             mask-image: radial-gradient(circle, black 30%, transparent 70%);
+            aspect-ratio: 1 / 1;
         }
 
         .lens.visible {
@@ -132,15 +132,16 @@
             text-decoration: none;
         }
 
+        /* ── MOBILE ── */
         @media (max-width: 768px) {
             .card {
                 top: 35px;
                 left: 30px;
-                font-size: 4px;
+                font-size: 13px;
             }
             .lens {
-                width: 300px;
-                height: 160px;
+                width: min(85vw, 400px);
+                height: min(85vw, 400px);
             }
         }
     </style>
@@ -227,6 +228,7 @@
             mouseX = x; mouseY = y;
             if (!active) {
                 smoothX = x; smoothY = y;
+                prevSmoothX = x; prevSmoothY = y;
                 active = true;
                 lens.classList.add('visible');
                 requestAnimationFrame(tick);
