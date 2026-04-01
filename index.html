@@ -6,7 +6,7 @@
     <title>Tobias Levin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -15,13 +15,10 @@
         }
 
         body {
-            font-family: 'Work Sans', sans-serif;
+            font-family: 'Instrument Sans', sans-serif;
             background: #fff;
             color: #000;
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             cursor: default;
             overflow: hidden;
             -webkit-tap-highlight-color: transparent;
@@ -32,203 +29,275 @@
             color: #fff;
         }
 
-        .content {
-            text-align: center;
-            font-size: 6px;
+        .card {
+            position: fixed;
+            top: 50px;
+            left: 50px;
+            font-size: 13px;
             font-weight: 400;
-            letter-spacing: 0.1em;
-            line-height: 1;
+            line-height: 1.55;
+            letter-spacing: normal;
             user-select: none;
-            white-space: nowrap;
         }
 
-        .content a {
+        .card-name {
+            font-weight: 500;
+            margin-bottom: 0.9em;
+        }
+
+        .card p {
             color: #000;
+        }
+
+        .card a {
+            color: #000;
+        }
+
+        .card .contact {
+            margin-top: 0.9em;
+        }
+
+        .card .contact a {
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .card .ig {
+            margin-top: 0.3em;
+        }
+
+        .card .ig a {
+            color: #999;
             text-decoration: none;
         }
 
+        /* ── ZOOM ── */
         .lens {
             position: fixed;
-            width: 260px;
-            height: 260px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 500px;
+            height: 500px;
             border-radius: 50%;
-            border: 1px solid #ccc;
             pointer-events: none;
             overflow: hidden;
-            opacity: 0;
             z-index: 10;
+            opacity: 0;
+            transition: opacity 0.35s ease;
             background: #fff;
-            will-change: transform, opacity;
-            transition: opacity 0.2s ease;
+            -webkit-mask-image: radial-gradient(circle, black 30%, transparent 70%);
+            mask-image: radial-gradient(circle, black 30%, transparent 70%);
         }
 
         .lens.visible {
             opacity: 1;
         }
 
-        .lens-content {
+        .lens-card {
             position: absolute;
-            text-align: center;
-            font-family: 'Work Sans', sans-serif;
-            font-size: 6px;
+            font-family: 'Instrument Sans', sans-serif;
             font-weight: 400;
-            letter-spacing: 0.1em;
-            line-height: 1;
+            line-height: 1.55;
+            letter-spacing: normal;
             color: #000;
-            transform-origin: center center;
             white-space: nowrap;
+            will-change: transform, filter;
         }
 
-        .lens-content a {
+        .lens-card .card-name {
+            font-weight: 500;
+            margin-bottom: 0.9em;
+        }
+
+        .lens-card a {
             color: #000;
+        }
+
+        .lens-card .contact {
+            margin-top: 0.9em;
+        }
+
+        .lens-card .contact a {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .lens-card .ig {
+            margin-top: 0.3em;
+        }
+
+        .lens-card .ig a {
+            color: #999;
             text-decoration: none;
         }
 
         @media (max-width: 768px) {
-            .content {
-                font-size: 5px;
-            }
-            .lens-content {
-                font-size: 5px;
+            .card {
+                top: 35px;
+                left: 30px;
+                font-size: 4px;
             }
             .lens {
-                width: 200px;
-                height: 200px;
+                width: 300px;
+                height: 160px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="content" id="content">TOBIAS LEVIN. Designer, based in Copenhagen. <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>&nbsp;/&nbsp;<a href="mailto:More@tobiaslevin.com">More@tobiaslevin.com</a></div>
+
+    <div class="card" id="card">
+        <div class="card-name">TOBIAS LEVIN</div>
+        <p>Designer, focused on details.</p>
+        <p>Based in Copenhagen, often in Tokyo.</p>
+        <div class="contact">
+            <p><a href="mailto:More@tobiaslevin.com">Email me</a> for consulting services.</p>
+        </div>
+        <div class="ig">
+            <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
+        </div>
+    </div>
 
     <div class="lens" id="lens">
-        <div class="lens-content" id="lensContent">TOBIAS LEVIN. Designer, based in Copenhagen. <a href="https://instagram.com/tobiaslvn">Instagram</a>&nbsp;/&nbsp;<a href="mailto:More@tobiaslevin.com">More@tobiaslevin.com</a></div>
+        <div class="lens-card" id="lensCard">
+            <div class="card-name">TOBIAS LEVIN</div>
+            <p>Designer, focused on details.</p>
+            <p>Based in Copenhagen, often in Tokyo.</p>
+            <div class="contact">
+                <p><a href="mailto:More@tobiaslevin.com">Email me</a> for consulting services.</p>
+            </div>
+            <div class="ig">
+                <a href="https://instagram.com/tobiaslvn">Instagram</a>
+            </div>
+        </div>
     </div>
 
     <script>
         const lens = document.getElementById('lens');
-        const lensContent = document.getElementById('lensContent');
-        const content = document.getElementById('content');
-        const scale = 10;
+        const lensCard = document.getElementById('lensCard');
+        const card = document.getElementById('card');
+        const zoom = 12;
+        const proximityPadding = 40;
 
-        // Smooth interpolation
-        let currentX = 0, currentY = 0;
-        let targetX = 0, targetY = 0;
-        let animating = false;
-        let isVisible = false;
+        let mouseX = 0, mouseY = 0;
+        let smoothX = 0, smoothY = 0;
+        let prevSmoothX = 0, prevSmoothY = 0;
+        let active = false;
 
-        function lerp(a, b, t) {
-            return a + (b - a) * t;
-        }
+        function lerp(a, b, t) { return a + (b - a) * t; }
 
-        function positionLens(cx, cy) {
+        function tick() {
+            if (!active) return;
+
+            smoothX = lerp(smoothX, mouseX, 0.1);
+            smoothY = lerp(smoothY, mouseY, 0.1);
+
+            const src = card.getBoundingClientRect();
             const lensW = lens.offsetWidth;
             const lensH = lens.offsetHeight;
 
-            const rect = content.getBoundingClientRect();
-            const contentCenterX = rect.left + rect.width / 2;
-            const contentCenterY = rect.top + rect.height / 2;
+            const baseFontSize = parseFloat(getComputedStyle(card).fontSize);
+            lensCard.style.fontSize = (baseFontSize * zoom) + 'px';
 
-            const offsetX = (lensW / 2) - (cx - contentCenterX) * scale - (rect.width * scale / 2);
-            const offsetY = (lensH / 2) - (cy - contentCenterY) * scale - (rect.height * scale / 2);
+            const relX = smoothX - src.left;
+            const relY = smoothY - src.top;
+            const scaledX = relX * zoom;
+            const scaledY = relY * zoom;
 
-            lens.style.transform = `translate(${cx - lensW / 2}px, ${cy - lensH / 2}px)`;
+            const tx = (lensW / 2) - scaledX;
+            const ty = (lensH / 2) - scaledY;
 
-            lensContent.style.transform = `scale(${scale})`;
-            lensContent.style.left = offsetX + 'px';
-            lensContent.style.top = offsetY + 'px';
-            lensContent.style.width = rect.width + 'px';
+            // Motion blur based on velocity
+            const vx = (smoothX - prevSmoothX) * zoom;
+            const vy = (smoothY - prevSmoothY) * zoom;
+            const speed = Math.sqrt(vx * vx + vy * vy);
+            const blur = Math.min(speed * 0.15, 18);
+
+            prevSmoothX = smoothX;
+            prevSmoothY = smoothY;
+
+            lensCard.style.transform = `translate(${tx}px, ${ty}px)`;
+            lensCard.style.filter = blur > 0.5 ? `blur(${blur}px)` : 'none';
+
+            requestAnimationFrame(tick);
         }
 
-        function animate() {
-            if (!isVisible) {
-                animating = false;
-                return;
+        function show(x, y) {
+            mouseX = x; mouseY = y;
+            if (!active) {
+                smoothX = x; smoothY = y;
+                active = true;
+                lens.classList.add('visible');
+                requestAnimationFrame(tick);
             }
-
-            currentX = lerp(currentX, targetX, 0.12);
-            currentY = lerp(currentY, targetY, 0.12);
-
-            positionLens(currentX, currentY);
-
-            animating = true;
-            requestAnimationFrame(animate);
         }
 
-        function startAnimation() {
-            if (!animating) {
-                animating = true;
-                requestAnimationFrame(animate);
-            }
-        }
-
-        function showLens(x, y) {
-            if (!isVisible) {
-                currentX = x;
-                currentY = y;
-            }
-            targetX = x;
-            targetY = y;
-            isVisible = true;
-            lens.classList.add('visible');
-            startAnimation();
-        }
-
-        function hideLens() {
-            isVisible = false;
+        function hide() {
+            active = false;
             lens.classList.remove('visible');
         }
 
-        // Mouse
+        function isNearCard() {
+            const src = card.getBoundingClientRect();
+            return (
+                mouseX >= src.left - proximityPadding &&
+                mouseX <= src.right + proximityPadding &&
+                mouseY >= src.top - proximityPadding &&
+                mouseY <= src.bottom + proximityPadding
+            );
+        }
+
+        // Desktop
         document.addEventListener('mousemove', (e) => {
-            showLens(e.clientX, e.clientY);
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            if (isNearCard()) {
+                if (!active) show(e.clientX, e.clientY);
+            } else {
+                if (active) hide();
+            }
         });
 
-        document.addEventListener('mouseleave', hideLens);
+        document.addEventListener('mouseleave', hide);
 
-        // Click through to links
+        // Links
         document.addEventListener('click', (e) => {
-            const elements = document.elementsFromPoint(e.clientX, e.clientY);
-            for (const el of elements) {
-                if (el.tagName === 'A' && content.contains(el)) {
-                    if (el.href.startsWith('mailto:')) {
-                        window.location.href = el.href;
-                    } else {
-                        window.open(el.href, '_blank');
-                    }
+            const els = document.elementsFromPoint(e.clientX, e.clientY);
+            for (const el of els) {
+                if (el.tagName === 'A' && card.contains(el)) {
+                    el.href.startsWith('mailto:') ? window.location.href = el.href : window.open(el.href, '_blank');
                     break;
                 }
             }
         });
 
-        // Touch
+        // Mobile
         document.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            showLens(touch.clientX, touch.clientY);
+            const t = e.touches[0];
+            mouseX = t.clientX;
+            mouseY = t.clientY;
+            if (active) {
+                const els = document.elementsFromPoint(t.clientX, t.clientY);
+                for (const el of els) {
+                    if (el.tagName === 'A' && card.contains(el)) {
+                        el.href.startsWith('mailto:') ? window.location.href = el.href : window.open(el.href, '_blank');
+                        hide(); return;
+                    }
+                }
+                hide();
+            } else {
+                show(t.clientX, t.clientY);
+            }
         }, { passive: true });
 
         document.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            const touch = e.touches[0];
-            targetX = touch.clientX;
-            targetY = touch.clientY;
-        }, { passive: false });
-
-        document.addEventListener('touchend', (e) => {
-            // Check if finger lifted over a link
-            const elements = document.elementsFromPoint(currentX, currentY);
-            for (const el of elements) {
-                if (el.tagName === 'A' && content.contains(el)) {
-                    if (el.href.startsWith('mailto:')) {
-                        window.location.href = el.href;
-                    } else {
-                        window.open(el.href, '_blank');
-                    }
-                    break;
-                }
+            if (active) {
+                e.preventDefault();
+                mouseX = e.touches[0].clientX;
+                mouseY = e.touches[0].clientY;
             }
-            hideLens();
-        });
+        }, { passive: false });
     </script>
 </body>
 </html>
