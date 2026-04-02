@@ -115,17 +115,18 @@
             display: none;
         }
 
-        @keyframes ripple {
-            0% {
-                width: 0px;
-                height: 0px;
-                opacity: 0.4;
-            }
-            100% {
-                width: 80px;
-                height: 80px;
-                opacity: 0;
-            }
+        @keyframes pop-scale {
+            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+            65% { transform: translate(-50%, -50%) scale(1.02); opacity: 0.35; }
+            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        }
+
+        @keyframes pop-dash {
+            0% { stroke-dasharray: 157 0; }
+            50% { stroke-dasharray: 157 0; }
+            65% { stroke-dasharray: 14 8; }
+            100% { stroke-dasharray: 2 40; }
         }
 
         @media (max-width: 768px) {
@@ -179,15 +180,18 @@
                 left: 0;
                 transform: translateY(-50%);
             }
-            .crosshair .ripple-ring {
+            .crosshair .pop-circle {
                 position: absolute;
                 top: 50%;
                 left: 50%;
-                transform: translate(-50%, -50%);
-                border-radius: 50%;
-                border: 0.5px solid #000;
+                width: 60px;
+                height: 60px;
                 pointer-events: none;
-                animation: ripple 1.2s ease-out forwards;
+                overflow: visible;
+                animation: pop-scale 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+            .crosshair .pop-circle circle {
+                animation: pop-dash 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
             }
             .details-trigger { text-decoration: none; cursor: default; }
         }
@@ -364,20 +368,24 @@
             prevSmoothY = crossY;
             requestAnimationFrame(crosshairTick);
 
-            // Ripple rings on page load
+            // Pop circle on page load
             setTimeout(function() {
-                for (var r = 0; r < 3; r++) {
-                    (function(delay) {
-                        setTimeout(function() {
-                            var ring = document.createElement('div');
-                            ring.className = 'ripple-ring';
-                            crosshair.appendChild(ring);
-                            ring.addEventListener('animationend', function() {
-                                ring.remove();
-                            });
-                        }, delay);
-                    })(r * 300);
-                }
+                var svgNS = 'http://www.w3.org/2000/svg';
+                var svg = document.createElementNS(svgNS, 'svg');
+                svg.setAttribute('width', '60');
+                svg.setAttribute('height', '60');
+                svg.setAttribute('viewBox', '0 0 60 60');
+                svg.setAttribute('class', 'pop-circle');
+                var circle = document.createElementNS(svgNS, 'circle');
+                circle.setAttribute('cx', '30');
+                circle.setAttribute('cy', '30');
+                circle.setAttribute('r', '25');
+                circle.setAttribute('fill', 'none');
+                circle.setAttribute('stroke', '#000');
+                circle.setAttribute('stroke-width', '0.5');
+                svg.appendChild(circle);
+                crosshair.appendChild(svg);
+                svg.addEventListener('animationend', function() { svg.remove(); });
             }, 600);
 
             document.addEventListener('touchstart', function(e) {
