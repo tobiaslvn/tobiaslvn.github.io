@@ -111,6 +111,10 @@
         .lens-inner .ig { margin-top: 0.3em; }
         .lens-inner .ig a { color: #999; text-decoration: none; }
 
+        .lens-crosshair {
+            display: none;
+        }
+
         @media (max-width: 768px) {
             .card {
                 position: fixed;
@@ -121,8 +125,32 @@
                 font-size: 14px;
                 line-height: 1.6;
             }
-            .lens { display: none; }
-            .hidden-card { display: none; }
+            .hidden-card {
+                top: auto;
+                bottom: 40px;
+                left: 20px;
+            }
+            .lens {
+                width: 300px;
+                height: 300px;
+                top: 0;
+                left: 0;
+                transform: none;
+            }
+            .lens-crosshair {
+                display: block;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 11;
+                pointer-events: none;
+                color: #000;
+                font-size: 24px;
+                font-weight: 300;
+                line-height: 1;
+                opacity: 0.4;
+            }
             .details-trigger { text-decoration: none; cursor: default; }
         }
     </style>
@@ -154,6 +182,7 @@
     </div>
 
     <div class="lens" id="lens">
+        <div class="lens-crosshair">+</div>
         <div class="lens-inner" id="lensInner">
             <div class="card-name">TOBIAS LEVIN</div>
             <p>Designer, focused on <span>details</span>.</p>
@@ -244,13 +273,90 @@
             }
         }
 
-        trigger.addEventListener('click', handleToggle);
-        hiddenTrigger.addEventListener('click', handleToggle);
+        var isMobile = window.matchMedia('(max-width: 768px)').matches;
 
-        document.addEventListener('mousemove', function(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
+        if (isMobile) {
+            // Mobile: touch anywhere to activate, touch moves lens, tap to deactivate
+            var touchActive = false;
+
+            function positionLens(x, y) {
+                var lensW = lens.offsetWidth;
+                var lensH = lens.offsetHeight;
+                lens.style.left = (x - lensW / 2) + 'px';
+                lens.style.top = (y - lensH / 2) + 'px';
+            }
+
+            function mobileTick() {
+                if (!active) return;
+                smoothX = lerp(smoothX, mouseX, 0.15);
+                smoothY = lerp(smoothY, mouseY, 0.15);
+
+                var src = card.getBoundingClientRect();
+                var lensW = lens.offsetWidth;
+                var lensH = lens.offsetHeight;
+                var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
+                lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
+
+                var relX = smoothX - src.left;
+                var relY = smoothY - src.top;
+                var tx = (lensW / 2) - (relX * zoom);
+                var ty = (lensH / 2) - (relY * zoom);
+
+                var vx = (smoothX - prevSmoothX) * zoom;
+                var vy = (smoothY - prevSmoothY) * zoom;
+                var speed = Math.sqrt(vx * vx + vy * vy);
+                var blur = Math.min(speed * 0.15, 18);
+                prevSmoothX = smoothX;
+                prevSmoothY = smoothY;
+
+                positionLens(smoothX, smoothY);
+                lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+                lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
+                requestAnimationFrame(mobileTick);
+            }
+
+            document.addEventListener('touchstart', function(e) {
+                var touch = e.touches[0];
+                mouseX = touch.clientX;
+                mouseY = touch.clientY;
+
+                if (!touchActive) {
+                    touchActive = true;
+                    enabled = true;
+                    active = true;
+                    smoothX = mouseX; smoothY = mouseY;
+                    prevSmoothX = mouseX; prevSmoothY = mouseY;
+                    positionLens(mouseX, mouseY);
+                    lens.classList.add('visible');
+                    hiddenCard.classList.add('active');
+                    requestAnimationFrame(mobileTick);
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault();
+                var touch = e.touches[0];
+                mouseX = touch.clientX;
+                mouseY = touch.clientY;
+            }, { passive: false });
+
+            document.addEventListener('touchend', function(e) {
+                touchActive = false;
+                active = false;
+                enabled = false;
+                lens.classList.remove('visible');
+                hiddenCard.classList.remove('active');
+            }, { passive: true });
+        } else {
+            // Desktop: click "details" to toggle
+            trigger.addEventListener('click', handleToggle);
+            hiddenTrigger.addEventListener('click', handleToggle);
+
+            document.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+        }
     </script>
 </body>
 </html>
