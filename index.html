@@ -111,8 +111,21 @@
         .lens-inner .ig { margin-top: 0.3em; }
         .lens-inner .ig a { color: #999; text-decoration: none; }
 
-        .lens-crosshair {
+        .crosshair {
             display: none;
+        }
+
+        @keyframes ripple {
+            0% {
+                width: 0px;
+                height: 0px;
+                opacity: 0.4;
+            }
+            100% {
+                width: 80px;
+                height: 80px;
+                opacity: 0;
+            }
         }
 
         @media (max-width: 768px) {
@@ -137,19 +150,47 @@
                 left: 0;
                 transform: none;
             }
-            .lens-crosshair {
+            .crosshair {
                 display: block;
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                width: 32px;
+                height: 32px;
+                pointer-events: none;
+                z-index: 20;
+                will-change: transform;
+            }
+            .crosshair::before,
+            .crosshair::after {
+                content: '';
+                position: absolute;
+                background: #000;
+                opacity: 0.35;
+            }
+            .crosshair::before {
+                width: 0.5px;
+                height: 100%;
+                left: 50%;
+                top: 0;
+                transform: translateX(-50%);
+            }
+            .crosshair::after {
+                height: 0.5px;
+                width: 100%;
+                top: 50%;
+                left: 0;
+                transform: translateY(-50%);
+            }
+            .crosshair .ripple-ring {
                 position: absolute;
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                z-index: 11;
+                border-radius: 50%;
+                border: 0.5px solid #000;
                 pointer-events: none;
-                color: #000;
-                font-size: 24px;
-                font-weight: 300;
-                line-height: 1;
-                opacity: 0.4;
+                animation: ripple 1.2s ease-out forwards;
             }
             .details-trigger { text-decoration: none; cursor: default; }
         }
@@ -181,8 +222,9 @@
         </div>
     </div>
 
+    <div class="crosshair" id="crosshair"></div>
+
     <div class="lens" id="lens">
-        <div class="lens-crosshair">+</div>
         <div class="lens-inner" id="lensInner">
             <div class="card-name">TOBIAS LEVIN</div>
             <p>Designer, focused on <span>details</span>.</p>
@@ -274,10 +316,14 @@
         }
 
         var isMobile = window.matchMedia('(max-width: 768px)').matches;
+        var crosshair = document.getElementById('crosshair');
 
         if (isMobile) {
-            // Mobile: touch anywhere to activate, touch moves lens, tap to deactivate
             var touchActive = false;
+            var crossX = window.innerWidth / 2;
+            var crossY = window.innerHeight / 2;
+            var targetX = crossX;
+            var targetY = crossY;
 
             function positionLens(x, y) {
                 var lensW = lens.offsetWidth;
@@ -286,39 +332,71 @@
                 lens.style.top = (y - lensH / 2) + 'px';
             }
 
-            function mobileTick() {
-                if (!active) return;
-                smoothX = lerp(smoothX, mouseX, 0.15);
-                smoothY = lerp(smoothY, mouseY, 0.15);
+            // Crosshair always animates smoothly
+            function crosshairTick() {
+                crossX = lerp(crossX, targetX, 0.1);
+                crossY = lerp(crossY, targetY, 0.1);
+                crosshair.style.transform = 'translate(' + (crossX - 16) + 'px, ' + (crossY - 16) + 'px)';
 
-                var src = card.getBoundingClientRect();
-                var lensW = lens.offsetWidth;
-                var lensH = lens.offsetHeight;
-                var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
-                lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
+                // If lens is active, sync its position too
+                if (active) {
+                    smoothX = lerp(smoothX, mouseX, 0.15);
+                    smoothY = lerp(smoothY, mouseY, 0.15);
 
-                var relX = smoothX - src.left;
-                var relY = smoothY - src.top;
-                var tx = (lensW / 2) - (relX * zoom);
-                var ty = (lensH / 2) - (relY * zoom);
+                    var src = card.getBoundingClientRect();
+                    var lensW = lens.offsetWidth;
+                    var lensH = lens.offsetHeight;
+                    var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
+                    lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
 
-                var vx = (smoothX - prevSmoothX) * zoom;
-                var vy = (smoothY - prevSmoothY) * zoom;
-                var speed = Math.sqrt(vx * vx + vy * vy);
-                var blur = Math.min(speed * 0.15, 18);
-                prevSmoothX = smoothX;
-                prevSmoothY = smoothY;
+                    var relX = smoothX - src.left;
+                    var relY = smoothY - src.top;
+                    var tx = (lensW / 2) - (relX * zoom);
+                    var ty = (lensH / 2) - (relY * zoom);
 
-                positionLens(smoothX, smoothY);
-                lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
-                lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
-                requestAnimationFrame(mobileTick);
+                    var vx = (smoothX - prevSmoothX) * zoom;
+                    var vy = (smoothY - prevSmoothY) * zoom;
+                    var speed = Math.sqrt(vx * vx + vy * vy);
+                    var blur = Math.min(speed * 0.15, 18);
+                    prevSmoothX = smoothX;
+                    prevSmoothY = smoothY;
+
+                    positionLens(smoothX, smoothY);
+                    lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
+                    lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
+                }
+
+                requestAnimationFrame(crosshairTick);
             }
+
+            // Position crosshair at center initially (no transform needed, CSS handles it)
+            crosshair.style.top = '0px';
+            crosshair.style.left = '0px';
+            crosshair.style.transform = 'translate(' + (crossX - 16) + 'px, ' + (crossY - 16) + 'px)';
+            requestAnimationFrame(crosshairTick);
+
+            // Ripple rings on page load
+            setTimeout(function() {
+                for (var r = 0; r < 3; r++) {
+                    (function(delay) {
+                        setTimeout(function() {
+                            var ring = document.createElement('div');
+                            ring.className = 'ripple-ring';
+                            crosshair.appendChild(ring);
+                            ring.addEventListener('animationend', function() {
+                                ring.remove();
+                            });
+                        }, delay);
+                    })(r * 300);
+                }
+            }, 600);
 
             document.addEventListener('touchstart', function(e) {
                 var touch = e.touches[0];
                 mouseX = touch.clientX;
                 mouseY = touch.clientY;
+                targetX = touch.clientX;
+                targetY = touch.clientY;
 
                 if (!touchActive) {
                     touchActive = true;
@@ -329,7 +407,6 @@
                     positionLens(mouseX, mouseY);
                     lens.classList.add('visible');
                     hiddenCard.classList.add('active');
-                    requestAnimationFrame(mobileTick);
                 }
             }, { passive: true });
 
@@ -338,6 +415,8 @@
                 var touch = e.touches[0];
                 mouseX = touch.clientX;
                 mouseY = touch.clientY;
+                targetX = touch.clientX;
+                targetY = touch.clientY;
             }, { passive: false });
 
             document.addEventListener('touchend', function(e) {
