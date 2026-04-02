@@ -146,9 +146,6 @@
             .lens {
                 width: 300px;
                 height: 300px;
-                top: 0;
-                left: 0;
-                transform: none;
             }
             .crosshair {
                 display: block;
@@ -319,49 +316,38 @@
         var crosshair = document.getElementById('crosshair');
 
         if (isMobile) {
-            var touchActive = false;
             var crossX = window.innerWidth / 2;
             var crossY = window.innerHeight / 2;
             var targetX = crossX;
             var targetY = crossY;
+            var lensActivated = false;
 
-            function positionLens(x, y) {
-                var lensW = lens.offsetWidth;
-                var lensH = lens.offsetHeight;
-                lens.style.left = (x - lensW / 2) + 'px';
-                lens.style.top = (y - lensH / 2) + 'px';
-            }
-
-            // Crosshair always animates smoothly
+            // Crosshair always animates smoothly, lens content tracks crosshair
             function crosshairTick() {
                 crossX = lerp(crossX, targetX, 0.1);
                 crossY = lerp(crossY, targetY, 0.1);
                 crosshair.style.transform = 'translate(' + (crossX - 16) + 'px, ' + (crossY - 16) + 'px)';
 
-                // If lens is active, sync its position too
-                if (active) {
-                    smoothX = lerp(smoothX, mouseX, 0.15);
-                    smoothY = lerp(smoothY, mouseY, 0.15);
-
+                // Lens content always tracks the crosshair position
+                if (lensActivated) {
                     var src = card.getBoundingClientRect();
                     var lensW = lens.offsetWidth;
                     var lensH = lens.offsetHeight;
                     var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
                     lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
 
-                    var relX = smoothX - src.left;
-                    var relY = smoothY - src.top;
+                    var relX = crossX - src.left;
+                    var relY = crossY - src.top;
                     var tx = (lensW / 2) - (relX * zoom);
                     var ty = (lensH / 2) - (relY * zoom);
 
-                    var vx = (smoothX - prevSmoothX) * zoom;
-                    var vy = (smoothY - prevSmoothY) * zoom;
+                    var vx = (crossX - prevSmoothX) * zoom;
+                    var vy = (crossY - prevSmoothY) * zoom;
                     var speed = Math.sqrt(vx * vx + vy * vy);
                     var blur = Math.min(speed * 0.15, 18);
-                    prevSmoothX = smoothX;
-                    prevSmoothY = smoothY;
+                    prevSmoothX = crossX;
+                    prevSmoothY = crossY;
 
-                    positionLens(smoothX, smoothY);
                     lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
                     lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
                 }
@@ -369,10 +355,12 @@
                 requestAnimationFrame(crosshairTick);
             }
 
-            // Position crosshair at center initially (no transform needed, CSS handles it)
+            // Position crosshair at center initially
             crosshair.style.top = '0px';
             crosshair.style.left = '0px';
             crosshair.style.transform = 'translate(' + (crossX - 16) + 'px, ' + (crossY - 16) + 'px)';
+            prevSmoothX = crossX;
+            prevSmoothY = crossY;
             requestAnimationFrame(crosshairTick);
 
             // Ripple rings on page load
@@ -393,18 +381,11 @@
 
             document.addEventListener('touchstart', function(e) {
                 var touch = e.touches[0];
-                mouseX = touch.clientX;
-                mouseY = touch.clientY;
                 targetX = touch.clientX;
                 targetY = touch.clientY;
 
-                if (!touchActive) {
-                    touchActive = true;
-                    enabled = true;
-                    active = true;
-                    smoothX = mouseX; smoothY = mouseY;
-                    prevSmoothX = mouseX; prevSmoothY = mouseY;
-                    positionLens(mouseX, mouseY);
+                if (!lensActivated) {
+                    lensActivated = true;
                     lens.classList.add('visible');
                     hiddenCard.classList.add('active');
                 }
@@ -413,19 +394,11 @@
             document.addEventListener('touchmove', function(e) {
                 e.preventDefault();
                 var touch = e.touches[0];
-                mouseX = touch.clientX;
-                mouseY = touch.clientY;
                 targetX = touch.clientX;
                 targetY = touch.clientY;
             }, { passive: false });
 
-            document.addEventListener('touchend', function(e) {
-                touchActive = false;
-                active = false;
-                enabled = false;
-                lens.classList.remove('visible');
-                hiddenCard.classList.remove('active');
-            }, { passive: true });
+            // touchend: crosshair stays where it is, lens stays visible
         } else {
             // Desktop: click "details" to toggle
             trigger.addEventListener('click', handleToggle);
