@@ -6,7 +6,7 @@
     <title>Tobias Levin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -34,6 +34,12 @@
 
         .word.grey {
             animation: fade-in-grey 0.45s ease forwards;
+        }
+
+        .plantin {
+            font-family: 'EB Garamond', serif;
+            font-style: italic;
+            font-size: 1.25em;
         }
 
         #name-line {
@@ -134,6 +140,8 @@
             background: linear-gradient(rgba(210, 203, 195, 0.6), rgba(210, 203, 195, 0.6)) no-repeat left 72%;
             background-size: 0% 1.1em;
             border-radius: 2px;
+            padding-right: 3px;
+            margin-right: -3px;
             animation: highlight-sweep 0.4s ease forwards;
         }
 
@@ -208,10 +216,12 @@
             [
                 { text: "I'm" },
                 { text: 'a' },
-                { text: 'generalist designer,', swap: 'jack of all trades,' },
+                { text: 'generalist designer', swap: 'jack of all trades' },
+                { text: ',', noSpace: true },
                 { text: 'focused' },
                 { text: 'on' },
-                { text: 'details.', swap: 'tactility.', swap2: 'clarity.' },
+                { text: 'details', swap: 'tactility', swap2: 'clarity' },
+                { text: '.', noSpace: true },
             ],
             [
                 { text: 'I' },
@@ -245,9 +255,9 @@
         var delay = 0;
         var step = 40;
 
-        function makeWord(text, grey) {
+        function makeWord(text, grey, extraClass) {
             var span = document.createElement('span');
-            span.className = 'word' + (grey ? ' grey' : '');
+            span.className = 'word' + (grey ? ' grey' : '') + (extraClass ? ' ' + extraClass : '');
             span.style.animationDelay = delay + 'ms';
             delay += step;
             span.textContent = text;
@@ -263,7 +273,15 @@
         // Subtitle (grey)
         var subtitleEl = document.getElementById('subtitle');
         subtitleWords.forEach(function(word, i) {
-            subtitleEl.appendChild(makeWord(word, true));
+            var span = makeWord(word, true, word === 'travelling.' ? 'plantin' : '');
+            if (word === 'travelling.') {
+                span._swapQueue = ['in Tokyo.'];
+                span.addEventListener('animationend', function() {
+                    this.style.opacity = '0.4';
+                    this.dataset.swap = this._swapQueue[0];
+                }, { once: true });
+            }
+            subtitleEl.appendChild(span);
             if (i < subtitleWords.length - 1) subtitleEl.appendChild(document.createTextNode(' '));
         });
 
@@ -327,7 +345,7 @@
                 }
 
                 p.appendChild(span);
-                if (i < tokens.length - 1) p.appendChild(document.createTextNode(' '));
+                if (i < tokens.length - 1 && !tokens[i + 1].noSpace) p.appendChild(document.createTextNode(' '));
             });
             container.appendChild(p);
         });
