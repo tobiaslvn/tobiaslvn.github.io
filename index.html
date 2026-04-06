@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tobias Levin</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><line x1='50' y1='0' x2='50' y2='100' stroke='black' stroke-width='1'/><line x1='0' y1='50' x2='100' y2='50' stroke='black' stroke-width='1'/></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -59,11 +60,14 @@
             position: fixed;
             bottom: 60px;
             left: 60px;
+            opacity: 0;
+            animation: fade-in 0.45s ease forwards;
+            animation-delay: 1800ms;
         }
 
         .live-dot {
-            width: 7px;
-            height: 7px;
+            width: 5px;
+            height: 5px;
             border-radius: 50%;
             background: #4ade80;
             flex-shrink: 0;
@@ -176,6 +180,14 @@
             line-height: 1;
             color: #aaa;
             margin-left: 1px;
+            opacity: 0;
+            transform: scale(2) translateY(-2px);
+            animation: tooltip-count-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes tooltip-count-pop {
+            0%   { opacity: 0; transform: scale(2) translateY(-2px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
         }
 
         .tooltip-word {
@@ -245,13 +257,13 @@
                 { text: 'brand' },
                 { text: 'built' },
                 { text: 'around' },
-                { text: 'cardistry.', tooltip: 'Think shuffling on peptides.', tooltip2: 'Springs, cuts, fans, chin-extensions.' },
+                { text: 'cardistry.', tooltip: 'Think card shuffles on peptides.', tooltip2: 'Springs, cuts, fans, chin-extensions.' },
             ],
             [
                 { text: 'I' },
-                { text: 'studied', tooltip: 'At Scandinavian Academy of Fashion Design.' },
+                { text: 'studied', tooltip: 'At SAFD.', tooltipClickWord: 'SAFD.', tooltipExpanded: 'Scandinavian Academy of Fashion Design.' },
                 { text: 'fashion,' },
-                { text: 'now' },
+                { text: "now" },
                 { text: 'working' },
                 { text: 'on' },
                 { text: 'namesake', shake: true },
@@ -327,6 +339,7 @@
                     inner._tooltipColor = tipColor;
                     var ctr = document.createElement('span');
                     ctr.className = 'tooltip-count';
+                    ctr.style.animationDelay = (parseFloat(span.style.animationDelay) + 600) + 'ms';
                     var total = 1 + (token.tooltip2 ? 1 : 0);
                     ctr.textContent = total;
                     ctr.dataset.total = total;
@@ -338,12 +351,15 @@
                     span.dataset.tooltip = token.tooltip;
                     if (token.tooltip2) span.dataset.tooltip2 = token.tooltip2;
                     if (token.tooltip3) span.dataset.tooltip3 = token.tooltip3;
+                    if (token.tooltipClickWord) span._tooltipClickWord = token.tooltipClickWord;
+                    if (token.tooltipExpanded) span._tooltipExpanded = token.tooltipExpanded;
                     span.classList.add('tooltip-word');
                     span.textContent = token.text;
                     var tipColor = TOOLTIP_COLORS[tooltipColorIdx++ % TOOLTIP_COLORS.length];
                     span._tooltipColor = tipColor;
                     var ctr = document.createElement('span');
                     ctr.className = 'tooltip-count';
+                    ctr.style.animationDelay = (parseFloat(span.style.animationDelay) + 600) + 'ms';
                     var total = 1 + (token.tooltip2 ? 1 : 0) + (token.tooltip3 ? 1 : 0);
                     ctr.textContent = total;
                     ctr.dataset.total = total;
@@ -469,7 +485,22 @@
                     item.style.top = '0px';
                     var inner = document.createElement('span');
                     inner.className = 'tooltip-item-inner';
-                    inner.textContent = text;
+                    if (tooltipTarget._tooltipClickWord && text.includes(tooltipTarget._tooltipClickWord)) {
+                        var parts = text.split(tooltipTarget._tooltipClickWord);
+                        inner.appendChild(document.createTextNode(parts[0]));
+                        var expandBtn = document.createElement('span');
+                        expandBtn.textContent = tooltipTarget._tooltipClickWord;
+                        expandBtn.style.cssText = 'cursor:pointer;border-radius:2px;padding:0 3px;margin:0 -1px;background:linear-gradient(rgba(180,180,180,0.5),rgba(180,180,180,0.5)) no-repeat left 72%;background-size:0% 1.1em;animation:highlight-sweep 0.4s ease forwards;animation-delay:500ms;';
+                        expandBtn.addEventListener('click', function(e) {
+                            e.stopPropagation();
+                            expandBtn.style.background = 'none';
+                            typeEffect(expandBtn, tooltipTarget._tooltipExpanded);
+                        });
+                        inner.appendChild(expandBtn);
+                        if (parts[1]) inner.appendChild(document.createTextNode(parts[1]));
+                    } else {
+                        inner.textContent = text;
+                    }
                     var cardColor = tooltipTarget._tooltipColor;
                     if (cardColor) {
                         inner.style.background = cardColor;
@@ -484,7 +515,7 @@
                         tooltipStack.style.height = nextSlotTop + 'px';
                     });
 
-                    var wordCount = text.trim().split(/\s+/).length;
+                    var wordCount = (tooltipTarget._tooltipExpanded ? 'At ' + tooltipTarget._tooltipExpanded : text).trim().split(/\s+/).length;
                     setTimeout(function(el) {
                         if (el._cancelled) return;
                         el.classList.add('fade-out');
