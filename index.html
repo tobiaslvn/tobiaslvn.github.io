@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
 
         body {
             font-family: 'Instrument Sans', sans-serif;
@@ -103,22 +103,36 @@
         .tooltip-item {
             position: absolute;
             left: 0;
-            display: inline-block;
             max-width: calc(100vw - 120px);
             font-size: 24px;
-            line-height: 1.6;
-            color: #0b0b0b;
-            background: rgba(235, 234, 230, 0.6);
-            border-radius: 5px;
-            padding: 0 5px;
+            line-height: 2;
             opacity: 0;
             animation: tooltip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .tooltip-item-inner {
+            display: inline;
+            background: #f5f5f5;
+            color: #0b0b0b;
+            border-radius: 5px;
+            padding: 10px 16px;
+            -webkit-box-decoration-break: clone;
+            box-decoration-break: clone;
         }
 
         @keyframes tooltip-pop {
             from { opacity: 0; transform: translateY(10px); }
             to   { opacity: 1; transform: translateY(0); }
         }
+
+        .word-clickable {
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            text-decoration-thickness: 2px;
+            cursor: pointer;
+        }
+
+
 
         @keyframes tooltip-fade-out {
             from { opacity: 1; transform: translateY(0); }
@@ -136,7 +150,7 @@
             border-radius: 2px;
             padding-right: 3px;
             margin-right: -3px;
-            animation: highlight-sweep 0.4s ease forwards;
+            animation: highlight-sweep 0.4s ease forwards !important;
         }
 
         @keyframes highlight-sweep {
@@ -181,6 +195,10 @@
             .tooltip-item {
                 max-width: calc(100vw - 60px);
                 font-size: 20px;
+                line-height: 1.55;
+            }
+            .tooltip-item-inner {
+                padding: 2px 5px;
             }
         }
     </style>
@@ -220,7 +238,7 @@
             [
                 { text: 'I' },
                 { text: 'co-founded', tooltipPart: 'co', remainder: '-founded', tooltip: '2017~ Nikolaj Honoré and I founded Anyone, later joined by Noel Heath.', tooltip2: '2023~ I continued it solo.' },
-                { text: 'Anyone,', href: 'https://anyoneworldwide.com', tooltip: 'We work with artists, brands, and designers redefining what cards can be.', tooltip2: "We've expanded into leather accessories and home goods.", tooltip3: 'We host pop-ups around the world.' },
+                { text: 'Anyone,', href: 'https://anyoneworldwide.com', tooltip: 'We work with artists, brands, and designers redefining what playing cards can be.', tooltip2: "We've expanded into leather accessories and home goods.", tooltip3: 'We host pop-ups around the world.' },
                 { text: 'a' },
                 { text: 'playing' },
                 { text: 'card' },
@@ -236,7 +254,7 @@
                 { text: 'now' },
                 { text: 'working' },
                 { text: 'on' },
-                { text: 'namesake' },
+                { text: 'namesake', shake: true },
                 { text: 'label.' },
             ],
             [
@@ -263,9 +281,15 @@
 
         // Name
         var nameLine = document.getElementById('name-line');
+        var nameSpans = [];
         nameWords.forEach(function(word, i) {
-            nameLine.appendChild(makeWord(word + (i < nameWords.length - 1 ? '\u00a0' : ''), false));
+            var sp = makeWord(word + (i < nameWords.length - 1 ? '\u00a0' : ''), false);
+            nameSpans.push(sp);
+            nameLine.appendChild(sp);
         });
+        var nameIsUpper = false;
+
+        var swapSpans = [];
 
         // Subtitle (grey)
         var subtitleEl = document.getElementById('subtitle');
@@ -274,16 +298,16 @@
             if (word === 'travelling.') {
                 span._swapQueue = ['in Tokyo.'];
                 span.addEventListener('animationend', function() {
-                    this.style.opacity = '0.4';
-                    this.dataset.swap = this._swapQueue[0];
+                    this._fadeInDone = true;
+                    if (this._activateHighlight) this._activateHighlight();
                 }, { once: true });
+                swapSpans.push(span);
             }
             subtitleEl.appendChild(span);
             if (i < subtitleWords.length - 1) subtitleEl.appendChild(document.createTextNode(' '));
         });
 
         // Prose paragraphs
-        var swapSpans = [];
         var container = document.getElementById('prose-container');
         paragraphs.forEach(function(tokens) {
             var p = document.createElement('p');
@@ -341,6 +365,9 @@
                     if (token.href.indexOf('mailto') === -1) a.target = '_blank';
                     a.textContent = token.text;
                     span.appendChild(a);
+                } else if (token.shake) {
+                    span.textContent = token.text;
+                    span.dataset.shake = 'true';
                 } else {
                     span.textContent = token.text;
                 }
@@ -353,8 +380,8 @@
 
         // Chained highlight sweeps for swap words
         function activateSwapHighlight(span) {
-            span.style.opacity = '1';
-            span.dataset.swap = span._swapQueue[0];
+            if (span.classList.contains('grey')) span.style.opacity = '0.4';
+            span.dataset.swap = span._highlightOnly ? '' : span._swapQueue[0];
             span.addEventListener('animationend', function() {
                 var next = swapSpans[swapSpans.indexOf(span) + 1];
                 if (next) {
@@ -439,14 +466,17 @@
                     activePillCount++;
                     var item = document.createElement('div');
                     item.className = 'tooltip-item';
-                    item.textContent = text;
                     item.style.top = '0px';
+                    var inner = document.createElement('span');
+                    inner.className = 'tooltip-item-inner';
+                    inner.textContent = text;
                     var cardColor = tooltipTarget._tooltipColor;
                     if (cardColor) {
-                        item.style.background = cardColor;
+                        inner.style.background = cardColor;
                         var brightness = parseInt(cardColor.slice(1,3),16);
-                        item.style.color = brightness > 150 ? '#0b0b0b' : '#fff';
+                        inner.style.color = brightness > 150 ? '#0b0b0b' : '#fff';
                     }
+                    item.appendChild(inner);
                     tooltipStack.appendChild(item);
 
                     requestAnimationFrame(function() {
@@ -476,8 +506,19 @@
                 }, delay);
             }
 
+            var shakeTarget = e.target.closest('[data-shake]');
+            if (shakeTarget) {
+                nameIsUpper = !nameIsUpper;
+                var newNames = nameIsUpper
+                    ? ['TOBIAS\u00a0', 'LEVIN']
+                    : ['Tobias\u00a0', 'Levin'];
+                typeEffect(nameSpans[0], newNames[0], function() {
+                    typeEffect(nameSpans[1], newNames[1], function() {});
+                });
+            }
+
             var swapTarget = e.target.closest('[data-swap]');
-            if (swapTarget && !swapTarget._swapping) {
+            if (swapTarget && !swapTarget._swapping && swapTarget.dataset.swap) {
                 swapTarget._swapping = true;
                 var swapText = swapTarget.dataset.swap;
                 swapTarget.removeAttribute('data-swap');
