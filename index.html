@@ -6,7 +6,7 @@
     <title>Tobias Levin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=EB+Garamond:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -36,13 +36,7 @@
             animation: fade-in-grey 0.45s ease forwards;
         }
 
-        .plantin {
-            font-family: 'EB Garamond', serif;
-            font-style: italic;
-            font-size: 1.25em;
-        }
-
-        #name-line {
+#name-line {
             display: block;
             font-weight: 400;
             font-size: 24px;
@@ -273,7 +267,7 @@
         // Subtitle (grey)
         var subtitleEl = document.getElementById('subtitle');
         subtitleWords.forEach(function(word, i) {
-            var span = makeWord(word, true, word === 'travelling.' ? 'plantin' : '');
+            var span = makeWord(word, true);
             if (word === 'travelling.') {
                 span._swapQueue = ['in Tokyo.'];
                 span.addEventListener('animationend', function() {
