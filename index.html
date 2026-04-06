@@ -2,422 +2,478 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tobias Levin</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: 'Instrument Sans', sans-serif;
             background: #fff;
             color: #000;
             min-height: 100vh;
-            cursor: default;
-            overflow: hidden;
-            -webkit-tap-highlight-color: transparent;
-            -webkit-user-select: none;
-            user-select: none;
+            padding: 60px;
         }
 
-        .card {
-            position: fixed;
-            top: 30px;
-            left: 30px;
-            font-size: 13px;
-            font-weight: 400;
-            line-height: 1.55;
+        @keyframes fade-in {
+            to { opacity: 1; }
         }
-        .card-name { font-weight: 500; margin-bottom: 0.9em; }
-        .card p { color: #000; }
-        .card a { color: #000; }
-        .card .contact { margin-top: 0.9em; }
-        .card .contact a { text-decoration: underline; text-underline-offset: 2px; }
-        .card .ig { margin-top: 0.3em; }
-        .card .ig a { color: #999; text-decoration: none; }
-        .details-trigger {
-            text-decoration: underline;
-            text-underline-offset: 2px;
-            cursor: pointer;
-            transition: color 0.3s;
-        }
-        .details-trigger:hover { color: #999; }
 
-        .hidden-card {
-            position: fixed;
-            top: 30px;
-            left: 30px;
-            font-size: 13px;
-            font-weight: 400;
-            line-height: 1.55;
+        @keyframes fade-in-grey {
+            to { opacity: 0.4; }
+        }
+
+        .word {
+            display: inline;
             opacity: 0;
-            pointer-events: none;
-            z-index: 5;
-        }
-        .hidden-card.active { pointer-events: auto; }
-        .hidden-card .card-name { font-weight: 500; margin-bottom: 0.9em; }
-        .hidden-card p { color: #000; }
-        .hidden-card a { color: #000; text-decoration: none; }
-        .hidden-card .anyone-link { color: #666; text-decoration: none; }
-        .hidden-card .contact { margin-top: 0.9em; }
-        .hidden-card .contact a { color: #666; text-decoration: none; }
-        .hidden-card .ig { margin-top: 0.3em; }
-        .hidden-card .ig a { color: #999; text-decoration: none; }
-        .hidden-card .details-trigger-ghost {
-            color: #666;
-            text-decoration: none;
-            cursor: pointer;
+            animation: fade-in 0.45s ease forwards;
         }
 
-        .lens {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 650px;
-            height: 650px;
-            border-radius: 50%;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: 10;
-            opacity: 0;
-            transition: opacity 0.35s ease;
-            -webkit-mask-image: radial-gradient(circle, black 35%, transparent 70%);
-            mask-image: radial-gradient(circle, black 35%, transparent 70%);
-            aspect-ratio: 1 / 1;
+        .word.grey {
+            animation: fade-in-grey 0.45s ease forwards;
         }
-        .lens.visible { opacity: 1; }
 
-        .lens-inner {
-            position: absolute;
-            font-family: 'Instrument Sans', sans-serif;
+        #name-line {
+            display: block;
             font-weight: 400;
-            line-height: 1.55;
-            color: #000;
+            font-size: 24px;
+            margin-bottom: 6px;
             white-space: nowrap;
-            will-change: transform, filter;
         }
-        .lens-inner .card-name { font-weight: 500; margin-bottom: 0.9em; }
-        .lens-inner a { color: #000; text-decoration: none; }
-        .lens-inner .anyone-link {
+
+        #subtitle {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 20px;
+        }
+
+        #location {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 14px;
+            color: #999;
+            position: fixed;
+            bottom: 60px;
+            left: 60px;
+        }
+
+        .live-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #4ade80;
+            flex-shrink: 0;
+            animation: live-pulse 2s ease-out infinite;
+        }
+
+        @keyframes live-pulse {
+            0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+            70%  { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+        }
+
+        #prose-container {
+            font-size: 24px;
+            line-height: 1.6;
+        }
+
+        #prose-container p {
+            margin-bottom: 1em;
+        }
+
+        #prose-container p:last-child {
+            margin-bottom: 0;
+        }
+
+        a {
+            color: inherit;
             text-decoration: none;
-            color: #666;
-            transition: color 0.3s;
-        }
-        .lens-inner .anyone-link:hover { color: #333; }
-        .lens-inner .contact { margin-top: 0.9em; }
-        .lens-inner .contact a { text-decoration: none; color: #666; }
-        .lens-inner .ig { margin-top: 0.3em; }
-        .lens-inner .ig a { color: #999; text-decoration: none; }
-
-        .crosshair {
-            display: none;
         }
 
-        @keyframes pop-scale {
-            0% { transform: translate(-50%, -50%) scale(0); opacity: 0.5; }
-            50% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
-            65% { transform: translate(-50%, -50%) scale(1.02); opacity: 0.35; }
-            100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+        /* Tooltip stack */
+        #tooltip-stack {
+            margin-top: 3em;
+            position: relative;
         }
 
-        @keyframes pop-dash {
-            0% { stroke-dasharray: 157 0; }
-            50% { stroke-dasharray: 157 0; }
-            65% { stroke-dasharray: 14 8; }
-            100% { stroke-dasharray: 2 40; }
+        .tooltip-item {
+            position: absolute;
+            left: 0;
+            display: inline-block;
+            max-width: calc(100vw - 120px);
+            font-size: 24px;
+            line-height: 1.6;
+            color: #000;
+            background: rgba(235, 234, 230, 0.6);
+            border-radius: 5px;
+            padding: 0 5px;
+            opacity: 0;
+            animation: tooltip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-        @media (max-width: 768px) {
-            .card {
-                position: fixed;
-                top: auto;
-                bottom: 40px;
-                left: 20px;
-                transform: none;
-                font-size: 14px;
-                line-height: 1.6;
+        @keyframes tooltip-pop {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes tooltip-fade-out {
+            from { opacity: 1; transform: translateY(0); }
+            to   { opacity: 0; transform: translateY(10px); }
+        }
+
+        .tooltip-item.fade-out {
+            animation: tooltip-fade-out 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        [data-swap] {
+            cursor: pointer;
+            background: linear-gradient(rgba(210, 203, 195, 0.6), rgba(210, 203, 195, 0.6)) no-repeat left 72%;
+            background-size: 0% 1.1em;
+            border-radius: 2px;
+            animation: highlight-sweep 0.4s ease forwards;
+        }
+
+        @keyframes highlight-sweep {
+            to { background-size: 100% 1.1em; }
+        }
+
+        .typing { position: relative; }
+        .typing::after {
+            content: '|';
+            position: absolute;
+            left: 100%;
+            animation: blink 0.6s step-end infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50%       { opacity: 0; }
+        }
+
+        .tooltip-count {
+            display: inline-block;
+            vertical-align: super;
+            font-size: 10px;
+            line-height: 1;
+            color: #aaa;
+            margin-left: 1px;
+        }
+
+        .tooltip-word {
+            cursor: pointer;
+            text-decoration: underline;
+            text-decoration-style: solid;
+            text-underline-offset: 4px;
+            text-decoration-thickness: 2px;
+        }
+
+@media (max-width: 768px) {
+            body { padding: 30px; }
+            #name-line { margin-bottom: 4px; }
+            #subtitle { margin-bottom: 6px; }
+            #prose-container { margin-top: 48px; }
+            #location { bottom: 30px; left: 30px; }
+            .tooltip-item {
+                max-width: calc(100vw - 60px);
+                font-size: 20px;
             }
-            .hidden-card {
-                top: auto;
-                bottom: 40px;
-                left: 20px;
-            }
-            .lens {
-                width: 300px;
-                height: 300px;
-            }
-            .crosshair {
-                display: block;
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                width: 32px;
-                height: 32px;
-                pointer-events: none;
-                z-index: 20;
-                will-change: transform;
-            }
-            .crosshair::before,
-            .crosshair::after {
-                content: '';
-                position: absolute;
-                background: #000;
-                opacity: 0.35;
-            }
-            .crosshair::before {
-                width: 0.5px;
-                height: 100%;
-                left: 50%;
-                top: 0;
-                transform: translateX(-50%);
-            }
-            .crosshair::after {
-                height: 0.5px;
-                width: 100%;
-                top: 50%;
-                left: 0;
-                transform: translateY(-50%);
-            }
-            .crosshair .pop-circle {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 60px;
-                height: 60px;
-                pointer-events: none;
-                overflow: visible;
-                animation: pop-scale 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
-            .crosshair .pop-circle circle {
-                animation: pop-dash 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-            }
-            .details-trigger { text-decoration: none; cursor: default; }
         }
     </style>
 </head>
 <body>
 
-    <div class="card" id="card">
-        <div class="card-name">TOBIAS LEVIN</div>
-        <p>Designer, focused on <span class="details-trigger" id="detailsTrigger">details</span>.</p>
-        <p>Based in Copenhagen, often in Tokyo.</p>
-        <div class="contact">
-            <p><a class="email-link" href="#">Email</a> me for consulting services.</p>
-        </div>
-        <div class="ig">
-            <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
-        </div>
+    <div id="name-line"></div>
+    <div id="subtitle"></div>
+    <div id="location">
+        <span class="live-dot"></span>
+        <span>Copenhagen</span>
+        <span id="location-time" style="margin-left:4px;"></span>
     </div>
-
-    <div class="hidden-card" id="hiddenCard">
-        <div class="card-name">TOBIAS LEVIN</div>
-        <p>Designer, focused on <span class="details-trigger-ghost" id="hiddenTrigger">details</span>.</p>
-        <p>Founder of <a href="https://anyoneworldwide.com" target="_blank" class="anyone-link">Anyone</a>, redefining what playing cards can be.</p>
-        <div class="contact">
-            <p><a class="email-link" href="#">Email</a> me for consulting services.</p>
-        </div>
-        <div class="ig">
-            <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
-        </div>
-    </div>
-
-    <div class="crosshair" id="crosshair"></div>
-
-    <div class="lens" id="lens">
-        <div class="lens-inner" id="lensInner">
-            <div class="card-name">TOBIAS LEVIN</div>
-            <p>Designer, focused on <span>details</span>.</p>
-            <p>Founder of <a href="https://anyoneworldwide.com" target="_blank" class="anyone-link">Anyone</a>, redefining what playing cards can be.</p>
-            <div class="contact">
-                <p><a class="email-link" href="#">Email</a> me for consulting services.</p>
-            </div>
-            <div class="ig">
-                <a href="https://instagram.com/tobiaslvn" target="_blank">Instagram</a>
-            </div>
-        </div>
-    </div>
+    <div id="prose-container"></div>
+    <div id="tooltip-stack"></div>
+    <div id="agentation-root"></div>
+    <script type="module" src="/src/agentation-widget.jsx"></script>
 
     <script>
-        // Set email links via JS to avoid Cloudflare mangling
-        var emailLinks = document.querySelectorAll('.email-link');
-        for (var i = 0; i < emailLinks.length; i++) {
-            emailLinks[i].href = 'mai' + 'lto:' + 'More' + '@' + 'tobiaslevin.com';
+        var emailHref = 'mai' + 'lto:' + 'more' + '@' + 'tobiaslevin.com';
+
+        var nameWords = ['Tobias', 'Levin'];
+
+        var subtitleWords = ['Living', 'in', 'Copenhagen,', 'but', 'often', 'travelling.'];
+
+        var paragraphs = [
+            [
+                { text: "I'm" },
+                { text: 'a' },
+                { text: 'generalist designer,', swap: 'jack of all trades,' },
+                { text: 'focused' },
+                { text: 'on' },
+                { text: 'details.', swap: 'tactility.', swap2: 'clarity.' },
+            ],
+            [
+                { text: 'I' },
+                { text: 'co-founded', tooltipPart: 'co', remainder: '-founded', tooltip: '2017~ Nikolaj Honoré and I founded Anyone, later joined by Noel Heath.', tooltip2: '2023~ I continued it solo.' },
+                { text: 'Anyone,', href: 'https://anyoneworldwide.com', tooltip: 'We work with artists, brands, and designers redefining what cards can be.', tooltip2: "We've expanded into leather accessories and home goods.", tooltip3: 'We host pop-ups around the world.' },
+                { text: 'a' },
+                { text: 'playing' },
+                { text: 'card' },
+                { text: 'brand' },
+                { text: 'built' },
+                { text: 'around' },
+                { text: 'cardistry.', tooltip: 'Think shuffling on peptides.', tooltip2: 'Springs, cuts, fans, chin-extensions.' },
+            ],
+            [
+                { text: 'I' },
+                { text: 'studied', tooltip: 'At Scandinavian Academy of Fashion Design.' },
+                { text: 'fashion,' },
+                { text: 'now' },
+                { text: 'working' },
+                { text: 'on' },
+                { text: 'namesake' },
+                { text: 'label.' },
+            ],
+            [
+                { text: 'Email', href: emailHref, grey: true },
+                { text: '\u00a0\u00a0\u00a0', grey: true },
+                { text: 'Instagram', href: 'https://instagram.com/tobiaslvn', grey: true },
+            ],
+        ];
+
+        var delay = 0;
+        var step = 40;
+
+        function makeWord(text, grey) {
+            var span = document.createElement('span');
+            span.className = 'word' + (grey ? ' grey' : '');
+            span.style.animationDelay = delay + 'ms';
+            delay += step;
+            span.textContent = text;
+            return span;
         }
 
-        var lens = document.getElementById('lens');
-        var lensInner = document.getElementById('lensInner');
-        var card = document.getElementById('card');
-        var hiddenCard = document.getElementById('hiddenCard');
-        var trigger = document.getElementById('detailsTrigger');
-        var hiddenTrigger = document.getElementById('hiddenTrigger');
-        var zoom = 16;
-        var mouseX = 0, mouseY = 0;
-        var smoothX = 0, smoothY = 0;
-        var prevSmoothX = 0, prevSmoothY = 0;
-        var active = false;
-        var enabled = false;
+        // Name
+        var nameLine = document.getElementById('name-line');
+        nameWords.forEach(function(word, i) {
+            nameLine.appendChild(makeWord(word + (i < nameWords.length - 1 ? '\u00a0' : ''), false));
+        });
 
-        function lerp(a, b, t) { return a + (b - a) * t; }
+        // Subtitle (grey)
+        var subtitleEl = document.getElementById('subtitle');
+        subtitleWords.forEach(function(word, i) {
+            subtitleEl.appendChild(makeWord(word, true));
+            if (i < subtitleWords.length - 1) subtitleEl.appendChild(document.createTextNode(' '));
+        });
 
-        function tick() {
-            if (!active) return;
-            smoothX = lerp(smoothX, mouseX, 0.1);
-            smoothY = lerp(smoothY, mouseY, 0.1);
+        // Prose paragraphs
+        var swapSpans = [];
+        var container = document.getElementById('prose-container');
+        paragraphs.forEach(function(tokens) {
+            var p = document.createElement('p');
+            tokens.forEach(function(token, i) {
+                var span = document.createElement('span');
+                span.className = 'word' + (token.grey ? ' grey' : '');
+                span.style.animationDelay = delay + 'ms';
+                delay += step;
 
-            var src = card.getBoundingClientRect();
-            var lensW = lens.offsetWidth;
-            var lensH = lens.offsetHeight;
-            var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
-            lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
-
-            var relX = smoothX - src.left;
-            var relY = smoothY - src.top;
-            var tx = (lensW / 2) - (relX * zoom);
-            var ty = (lensH / 2) - (relY * zoom);
-
-            var vx = (smoothX - prevSmoothX) * zoom;
-            var vy = (smoothY - prevSmoothY) * zoom;
-            var speed = Math.sqrt(vx * vx + vy * vy);
-            var blur = Math.min(speed * 0.15, 18);
-            prevSmoothX = smoothX;
-            prevSmoothY = smoothY;
-
-            lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
-            lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
-            requestAnimationFrame(tick);
-        }
-
-        function activate() {
-            enabled = true;
-            active = true;
-            smoothX = mouseX; smoothY = mouseY;
-            prevSmoothX = mouseX; prevSmoothY = mouseY;
-            lens.classList.add('visible');
-            hiddenCard.classList.add('active');
-            requestAnimationFrame(tick);
-        }
-
-        function deactivate() {
-            enabled = false;
-            active = false;
-            lens.classList.remove('visible');
-            hiddenCard.classList.remove('active');
-        }
-
-        function handleToggle(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (enabled) {
-                deactivate();
-            } else {
-                activate();
-            }
-        }
-
-        var isMobile = window.matchMedia('(max-width: 768px)').matches;
-        var crosshair = document.getElementById('crosshair');
-
-        if (isMobile) {
-            zoom = 8;
-            var crossX = window.innerWidth / 2;
-            var crossY = window.innerHeight / 2;
-            var targetX = crossX;
-            var targetY = crossY;
-            var lensActivated = false;
-
-            // Crosshair always animates smoothly, lens content tracks crosshair
-            function crosshairTick() {
-                crossX = lerp(crossX, targetX, 0.1);
-                crossY = lerp(crossY, targetY, 0.1);
-                crosshair.style.transform = 'translate(' + (crossX - 16) + 'px, ' + (crossY - 16) + 'px)';
-
-                // Lens content always tracks the crosshair position
-                if (lensActivated) {
-                    var src = card.getBoundingClientRect();
-                    var lensW = lens.offsetWidth;
-                    var lensH = lens.offsetHeight;
-                    var baseFontSize = parseFloat(getComputedStyle(card).fontSize);
-                    lensInner.style.fontSize = (baseFontSize * zoom) + 'px';
-
-                    var relX = crossX - src.left;
-                    var relY = crossY - src.top;
-                    var tx = (lensW / 2) - (relX * zoom);
-                    var ty = (lensH / 2) - (relY * zoom);
-
-                    var vx = (crossX - prevSmoothX) * zoom;
-                    var vy = (crossY - prevSmoothY) * zoom;
-                    var speed = Math.sqrt(vx * vx + vy * vy);
-                    var blur = Math.min(speed * 0.15, 18);
-                    prevSmoothX = crossX;
-                    prevSmoothY = crossY;
-
-                    lensInner.style.transform = 'translate(' + tx + 'px, ' + ty + 'px)';
-                    lensInner.style.filter = blur > 0.5 ? 'blur(' + blur + 'px)' : 'none';
+                if (token.tooltipPart) {
+                    var inner = document.createElement('span');
+                    inner.dataset.tooltip = token.tooltip;
+                    if (token.tooltip2) inner.dataset.tooltip2 = token.tooltip2;
+                    inner.classList.add('tooltip-word');
+                    inner.textContent = token.tooltipPart;
+                    var ctr = document.createElement('span');
+                    ctr.className = 'tooltip-count';
+                    var total = 1 + (token.tooltip2 ? 1 : 0);
+                    ctr.textContent = total;
+                    ctr.dataset.total = total;
+                    inner.appendChild(ctr);
+                    inner._tooltipCounter = ctr;
+                    span.appendChild(inner);
+                    span.appendChild(document.createTextNode(token.remainder));
+                } else if (token.tooltip) {
+                    span.dataset.tooltip = token.tooltip;
+                    if (token.tooltip2) span.dataset.tooltip2 = token.tooltip2;
+                    if (token.tooltip3) span.dataset.tooltip3 = token.tooltip3;
+                    span.classList.add('tooltip-word');
+                    span.textContent = token.text;
+                    var ctr = document.createElement('span');
+                    ctr.className = 'tooltip-count';
+                    var total = 1 + (token.tooltip2 ? 1 : 0) + (token.tooltip3 ? 1 : 0);
+                    ctr.textContent = total;
+                    ctr.dataset.total = total;
+                    span.appendChild(ctr);
+                    span._tooltipCounter = ctr;
+                } else if (token.swap) {
+                    span.textContent = token.text;
+                    span._swapQueue = [token.swap];
+                    if (token.swap2) span._swapQueue.push(token.swap2);
+                    span.addEventListener('animationend', function() {
+                        this.style.opacity = '1';
+                        this._fadeInDone = true;
+                        if (this._activateHighlight) this._activateHighlight();
+                    }, { once: true });
+                    swapSpans.push(span);
+                } else if (token.href) {
+                    var a = document.createElement('a');
+                    a.href = token.href;
+                    if (token.href.indexOf('mailto') === -1) a.target = '_blank';
+                    a.textContent = token.text;
+                    span.appendChild(a);
+                } else {
+                    span.textContent = token.text;
                 }
 
-                requestAnimationFrame(crosshairTick);
-            }
+                p.appendChild(span);
+                if (i < tokens.length - 1) p.appendChild(document.createTextNode(' '));
+            });
+            container.appendChild(p);
+        });
 
-            // Position crosshair at center initially
-            crosshair.style.top = '0px';
-            crosshair.style.left = '0px';
-            crosshair.style.transform = 'translate(' + (crossX - 16) + 'px, ' + (crossY - 16) + 'px)';
-            prevSmoothX = crossX;
-            prevSmoothY = crossY;
-            requestAnimationFrame(crosshairTick);
-
-            // Pop circle on page load
-            setTimeout(function() {
-                var svgNS = 'http://www.w3.org/2000/svg';
-                var svg = document.createElementNS(svgNS, 'svg');
-                svg.setAttribute('width', '60');
-                svg.setAttribute('height', '60');
-                svg.setAttribute('viewBox', '0 0 60 60');
-                svg.setAttribute('class', 'pop-circle');
-                var circle = document.createElementNS(svgNS, 'circle');
-                circle.setAttribute('cx', '30');
-                circle.setAttribute('cy', '30');
-                circle.setAttribute('r', '25');
-                circle.setAttribute('fill', 'none');
-                circle.setAttribute('stroke', '#000');
-                circle.setAttribute('stroke-width', '0.5');
-                svg.appendChild(circle);
-                crosshair.appendChild(svg);
-                svg.addEventListener('animationend', function() { svg.remove(); });
-            }, 600);
-
-            document.addEventListener('touchstart', function(e) {
-                var touch = e.touches[0];
-                targetX = touch.clientX;
-                targetY = touch.clientY;
-
-                if (!lensActivated) {
-                    lensActivated = true;
-                    lens.classList.add('visible');
-                    hiddenCard.classList.add('active');
+        // Chained highlight sweeps for swap words
+        function activateSwapHighlight(span) {
+            span.style.opacity = '1';
+            span.dataset.swap = span._swapQueue[0];
+            span.addEventListener('animationend', function() {
+                var next = swapSpans[swapSpans.indexOf(span) + 1];
+                if (next) {
+                    if (next._fadeInDone) { activateSwapHighlight(next); }
+                    else { next._activateHighlight = function() { activateSwapHighlight(next); }; }
                 }
-            }, { passive: true });
+            }, { once: true });
+        }
+        if (swapSpans[0]) {
+            if (swapSpans[0]._fadeInDone) { activateSwapHighlight(swapSpans[0]); }
+            else { swapSpans[0]._activateHighlight = function() { activateSwapHighlight(swapSpans[0]); }; }
+        }
 
-            document.addEventListener('touchmove', function(e) {
+        // Tooltip stack
+        var tooltipStack = document.getElementById('tooltip-stack');
+        var clickCounts = new Map();
+        var activePillCount = 0;
+        var nextSlotTop = 0;
+        var PILL_GAP = 8;
+
+        var typeTimer = null;
+        function typeEffect(el, target, onComplete) {
+            if (typeTimer) clearTimeout(typeTimer);
+            var current = el.textContent;
+            var deleteSteps = [];
+            for (var i = current.length - 1; i >= 0; i--) deleteSteps.push(current.slice(0, i));
+            var typeSteps = [];
+            for (var j = 1; j <= target.length; j++) typeSteps.push(target.slice(0, j));
+            el.classList.add('typing');
+            var stepIndex = 0;
+            function next() {
+                if (stepIndex < deleteSteps.length) {
+                    el.textContent = deleteSteps[stepIndex++];
+                    typeTimer = setTimeout(next, 50);
+                } else if (stepIndex === deleteSteps.length) {
+                    stepIndex++;
+                    typeTimer = setTimeout(next, 180);
+                } else {
+                    var typeIndex = stepIndex - deleteSteps.length - 1;
+                    if (typeIndex < typeSteps.length) {
+                        el.textContent = typeSteps[typeIndex];
+                        stepIndex++;
+                        typeTimer = setTimeout(next, 50);
+                    } else {
+                        el.classList.remove('typing');
+                        if (onComplete) onComplete();
+                    }
+                }
+            }
+            next();
+        }
+
+        document.addEventListener('click', function(e) {
+            var tooltipTarget = e.target.closest('[data-tooltip]');
+            if (tooltipTarget) {
                 e.preventDefault();
-                var touch = e.touches[0];
-                targetX = touch.clientX;
-                targetY = touch.clientY;
-            }, { passive: false });
+                var count = clickCounts.get(tooltipTarget) || 0;
+                var text = count === 0
+                    ? tooltipTarget.dataset.tooltip
+                    : count === 1
+                        ? (tooltipTarget.dataset.tooltip2 || null)
+                        : count === 2
+                            ? (tooltipTarget.dataset.tooltip3 || null)
+                            : null;
+                if (!text) return;
+                var newCount = count + 1;
+                clickCounts.set(tooltipTarget, newCount);
+                var hasMore = newCount === 1
+                    ? !!tooltipTarget.dataset.tooltip2
+                    : newCount === 2
+                        ? !!tooltipTarget.dataset.tooltip3
+                        : false;
+                if (!hasMore) {
+                    tooltipTarget.classList.remove('tooltip-word');
+                    if (tooltipTarget._tooltipCounter) tooltipTarget._tooltipCounter.remove();
+                } else if (tooltipTarget._tooltipCounter) {
+                    tooltipTarget._tooltipCounter.textContent = parseInt(tooltipTarget._tooltipCounter.dataset.total) - newCount;
+                }
+                activePillCount++;
 
-            // touchend: crosshair stays where it is, lens stays visible
-        } else {
-            // Desktop: click "details" to toggle
-            trigger.addEventListener('click', handleToggle);
-            hiddenTrigger.addEventListener('click', handleToggle);
+                var item = document.createElement('div');
+                item.className = 'tooltip-item';
+                item.textContent = text;
+                item.style.top = nextSlotTop + 'px';
+                tooltipStack.appendChild(item);
 
-            document.addEventListener('mousemove', function(e) {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
+                requestAnimationFrame(function() {
+                    nextSlotTop += item.offsetHeight + PILL_GAP;
+                    tooltipStack.style.height = nextSlotTop + 'px';
+                });
+
+                var wordCount = text.trim().split(/\s+/).length;
+                setTimeout(function(el) {
+                    el.classList.add('fade-out');
+                    setTimeout(function() {
+                        el.style.visibility = 'hidden';
+                        activePillCount--;
+                        if (activePillCount === 0) {
+                            setTimeout(function() {
+                                if (activePillCount === 0) {
+                                    tooltipStack.innerHTML = '';
+                                    tooltipStack.style.height = '';
+                                    nextSlotTop = 0;
+                                }
+                            }, 100);
+                        }
+                    }, 250);
+                }.bind(null, item), wordCount * 700);
+            }
+
+            var swapTarget = e.target.closest('[data-swap]');
+            if (swapTarget && !swapTarget._swapping) {
+                swapTarget._swapping = true;
+                var swapText = swapTarget.dataset.swap;
+                swapTarget.removeAttribute('data-swap');
+                typeEffect(swapTarget, swapText, function() {
+                    swapTarget._swapping = false;
+                    var idx = swapTarget._swapQueue.indexOf(swapText);
+                    if (idx < swapTarget._swapQueue.length - 1) {
+                        void swapTarget.offsetWidth;
+                        swapTarget.dataset.swap = swapTarget._swapQueue[idx + 1];
+                    }
+                });
+            }
+        });
+
+        // Live Copenhagen time
+        var locationTime = document.getElementById('location-time');
+        function updateTime() {
+            locationTime.textContent = new Date().toLocaleTimeString('en-GB', {
+                timeZone: 'Europe/Copenhagen',
+                hour: '2-digit',
+                minute: '2-digit'
             });
         }
+        updateTime();
+        setInterval(updateTime, 1000);
     </script>
+
 </body>
 </html>
