@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Writing — Tobias Levin</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><line x1='50' y1='15' x2='50' y2='85' stroke='black' stroke-width='12' stroke-linecap='round'/><line x1='15' y1='50' x2='85' y2='50' stroke='black' stroke-width='12' stroke-linecap='round'/></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+
+        body {
+            font-family: 'Instrument Sans', sans-serif;
+            background: #fff;
+            color: #101820;
+            min-height: 100vh;
+            padding: 60px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #main-content {
+            width: 100%;
+            max-width: 560px;
+        }
+
+        @keyframes fade-in {
+            to { opacity: 1; }
+        }
+
+        @keyframes fade-in-grey {
+            to { opacity: 0.4; }
+        }
+
+        .fade { opacity: 0; animation: fade-in 0.45s ease forwards; }
+        .fade-grey { opacity: 0; animation: fade-in-grey 0.45s ease forwards; }
+
+        #back {
+            display: block;
+            font-size: 24px;
+            color: #101820;
+            text-decoration: none;
+            margin-bottom: 1em;
+            animation-delay: 0ms;
+        }
+
+        #back:hover { opacity: 0.5; }
+
+        .entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 2em;
+            font-size: 16px;
+            color: #101820;
+            text-decoration: none;
+            line-height: 1.6;
+            opacity: 0;
+        }
+
+        .entry-date {
+            font-size: 16px;
+            color: #d9d9d6;
+            white-space: nowrap;
+        }
+
+        .entry:hover { opacity: 0.5 !important; transition: opacity 0.15s; }
+
+        @media (max-width: 768px) {
+            body { padding: 30px; }
+            #main-content { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="main-content">
+        <a id="back" class="fade-grey" href="/" style="animation-delay: 0ms;">&#8249;</a>
+        <div id="entries-list"></div>
+    </div>
+    <script>
+        fetch('/api/entries').then(function(r) { return r.json(); }).then(function(entries) {
+            var published = entries.filter(function(e) { return e.published; });
+            var list = document.getElementById('entries-list');
+            published.forEach(function(entry, i) {
+                var a = document.createElement('a');
+                a.className = 'entry fade';
+                a.href = '/writing/entry/?id=' + entry.id;
+                a.style.animationDelay = (80 + i * 80) + 'ms';
+                var title = document.createElement('span');
+                title.textContent = entry.title;
+                var date = document.createElement('span');
+                date.className = 'entry-date';
+                date.textContent = entry.date;
+                a.appendChild(title);
+                a.appendChild(date);
+                list.appendChild(a);
+            });
+        });
+    </script>
+</body>
+</html>

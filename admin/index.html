@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — Tobias Levin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Instrument Sans', sans-serif;
+            background: #f5f5f3;
+            color: #101820;
+            min-height: 100vh;
+            padding: 48px 60px;
+        }
+
+        #auth {
+            max-width: 320px;
+            margin: 80px auto;
+        }
+
+        #auth h1 { font-size: 16px; font-weight: 400; margin-bottom: 20px; }
+
+        #dashboard { max-width: 600px; }
+
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 32px;
+        }
+
+        .dash-header h1 { font-size: 16px; font-weight: 400; }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 12px;
+        }
+
+        .card-label {
+            font-size: 11px;
+            color: #d9d9d6;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .card-top .card-label { margin-bottom: 0; }
+
+        #auth input[type="text"],
+        #auth input[type="password"],
+        #dashboard input[type="text"],
+        #dashboard input[type="password"],
+        #dashboard textarea,
+        #editor input[type="text"],
+        #editor textarea,
+        #editor input[type="date"] {
+            font-family: inherit;
+            font-size: 16px;
+            color: #101820;
+            background: #f5f5f3;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 14px;
+            width: 100%;
+            outline: none;
+        }
+
+        #auth input[type="text"]:focus,
+        #auth input[type="password"]:focus,
+        #dashboard input[type="text"]:focus,
+        #dashboard input[type="password"]:focus,
+        #dashboard textarea:focus,
+        #editor input[type="text"]:focus,
+        #editor textarea:focus,
+        #editor input[type="date"]:focus { background: #efefed; }
+
+        textarea { resize: vertical; min-height: 200px; line-height: 1.6; }
+
+        .row { display: flex; gap: 8px; align-items: center; }
+
+        .btn {
+            font-family: inherit;
+            font-size: 14px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: opacity 0.15s;
+        }
+
+        .btn:hover { opacity: 0.7; }
+        .btn-dark { background: #101820; color: #fff; }
+        .btn-light { background: #efefed; color: #101820; }
+        .btn-ghost { background: none; color: #d9d9d6; padding: 8px 0; }
+        .btn-ghost:hover { color: #e05555; opacity: 1; }
+        .btn-sm { font-size: 13px; padding: 5px 12px; }
+
+        .entries-list { margin-top: 20px; }
+
+        .travel-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 0;
+            border-top: 1px solid #f5f5f3;
+            font-size: 16px;
+        }
+
+        .travel-city { flex: 1; }
+        .travel-dates { color: #d9d9d6; white-space: nowrap; font-size: 15px; }
+        .travel-dot { font-size: 10px; flex-shrink: 0; color: #d9d9d6; }
+        .travel-dot.active { color: #4ade80; }
+
+        .entry-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 11px 0;
+            border-top: 1px solid #f5f5f3;
+        }
+
+        .entry-dot { font-size: 10px; flex-shrink: 0; color: #d9d9d6; }
+        .entry-dot.published { color: #4ade80; }
+        .entry-title { flex: 1; font-size: 16px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .entry-date { font-size: 16px; color: #d9d9d6; white-space: nowrap; }
+
+        /* Editor overlay */
+        #editor {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.97);
+            padding: 48px 60px;
+            overflow-y: auto;
+            display: none;
+            z-index: 100;
+        }
+
+        #editor.open { display: block; }
+        #editor-inner { max-width: 600px; }
+
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        .editor-header span { font-size: 16px; color: #d9d9d6; }
+
+        .field { margin-bottom: 14px; }
+
+        .field-label {
+            font-size: 11px;
+            color: #d9d9d6;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .field-row { display: flex; gap: 8px; }
+        .field-row input { flex: 1; }
+
+        .photos-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .photo-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            display: block;
+        }
+
+        .photo-remove {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 18px;
+            height: 18px;
+            background: #101820;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        .editor-footer {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #f0f0ee;
+        }
+
+        .published-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            font-size: 14px;
+            color: #d9d9d6;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toggle-track {
+            width: 32px;
+            height: 18px;
+            border-radius: 999px;
+            background: #d9d9d6;
+            position: relative;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toggle-track.on { background: #4ade80; }
+
+        .toggle-thumb {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            transition: transform 0.2s;
+        }
+
+        .toggle-track.on .toggle-thumb { transform: translateX(14px); }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #101820;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 999px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.25s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast.show { opacity: 1; }
+
+        a.logout {
+            font-size: 16px;
+            color: #d9d9d6;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        a.logout:hover { color: #101820; }
+
+        @media (max-width: 768px) {
+            body { padding: 30px; }
+            #editor { padding: 30px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Auth -->
+<div id="auth">
+    <h1>Dashboard</h1>
+    <div class="row">
+        <input type="password" id="pw" placeholder="Password" onkeydown="if(event.key==='Enter')login()">
+        <button class="btn btn-dark" onclick="login()">Enter</button>
+    </div>
+    <div id="pw-err" style="color:#e05555;font-size:14px;margin-top:10px;display:none;">Incorrect password</div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" style="display:none;">
+    <div class="dash-header">
+        <h1>Dashboard</h1>
+        <a class="logout" onclick="logout()">Log out</a>
+    </div>
+
+    <div class="card">
+        <div class="card-top">
+            <div class="card-label">Travel</div>
+            <button class="btn btn-light btn-sm" onclick="showAddTravel()">+ Add</button>
+        </div>
+        <div id="travel-list"></div>
+        <div id="travel-form" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid #f5f5f3;">
+            <div class="row" style="gap:8px;flex-wrap:wrap;">
+                <select id="travel-city" style="font-family:inherit;font-size:16px;color:#101820;background:#f5f5f3;border:none;border-radius:6px;padding:10px 14px;flex:1;min-width:120px;outline:none;appearance:none;cursor:pointer;">
+                    <option value="Copenhagen">Copenhagen</option>
+                    <option value="Los Angeles">Los Angeles</option>
+                    <option value="New York">New York</option>
+                    <option value="Paris">Paris</option>
+                    <option value="Tokyo">Tokyo</option>
+                </select>
+                <input type="date" id="travel-start" style="flex:1;min-width:130px;">
+                <input type="date" id="travel-end" style="flex:1;min-width:130px;">
+                <button id="travel-form-btn" class="btn btn-dark btn-sm" onclick="addTravel()">Add</button>
+                <button class="btn btn-ghost btn-sm" onclick="hideAddTravel()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-top">
+            <div class="card-label">Writing</div>
+            <a class="btn btn-light btn-sm" href="https://notion.so/33fbd7690a2180bd9307f3de18df137b" target="_blank">Open in Notion</a>
+        </div>
+        <div style="font-size:15px;color:#a0a09e;padding-top:4px;">Write entries in Notion. Check "published" to show them on the site.</div>
+    </div>
+</div>
+
+<!-- Editor -->
+<div id="editor">
+    <div id="editor-inner">
+        <div class="editor-header">
+            <span id="editor-label">New entry</span>
+            <button class="btn btn-ghost" onclick="closeEditor()">Cancel</button>
+        </div>
+
+        <div class="field">
+            <div class="field-label">Title</div>
+            <input type="text" id="e-title" placeholder="Entry title">
+        </div>
+
+        <div class="field">
+            <div class="field-label">Date</div>
+            <input type="text" id="e-date" placeholder="April 2026">
+        </div>
+
+        <div class="field">
+            <div class="field-label">Content</div>
+            <textarea id="e-content" placeholder="Write here. Leave a blank line between paragraphs."></textarea>
+        </div>
+
+        <div class="field">
+            <div class="field-label">Photos</div>
+            <button class="btn btn-light btn-sm" onclick="document.getElementById('photo-input').click()">+ Add photo</button>
+            <input type="file" id="photo-input" accept="image/*" multiple style="display:none" onchange="addPhotos(this)">
+            <div id="photos-grid" class="photos-grid"></div>
+        </div>
+
+        <div class="editor-footer">
+            <button class="btn btn-dark" onclick="saveEntry()">Save</button>
+            <button class="btn btn-ghost" onclick="deleteEntry()">Delete</button>
+            <label class="published-toggle" onclick="togglePublished()">
+                <div class="toggle-track" id="pub-track"><div class="toggle-thumb"></div></div>
+                <span id="pub-label" style="color:#a0a09e">Draft</span>
+            </label>
+        </div>
+    </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    var PASSWORD = 'tobias';
+    var editingId = null;
+    var editingTravelIdx = null;
+    var currentPhotos = [];
+    var isPublished = false;
+    var localData = { location: 'Copenhagen', entries: [] };
+
+    // Auth
+    if (sessionStorage.getItem('tl_auth') === '1') showDashboard();
+
+    function login() {
+        if (document.getElementById('pw').value === PASSWORD) {
+            sessionStorage.setItem('tl_auth', '1');
+            document.getElementById('pw-err').style.display = 'none';
+            showDashboard();
+        } else {
+            document.getElementById('pw-err').style.display = 'block';
+        }
+    }
+
+    function logout() {
+        sessionStorage.removeItem('tl_auth');
+        location.reload();
+    }
+
+    // API helpers
+    async function loadData() {
+        var res = await fetch('/api/config');
+        var d = await res.json();
+        localData.location = d.location || 'Copenhagen';
+        try { localData.entries = JSON.parse(d.entries || '[]'); } catch(e) { localData.entries = []; }
+        try { localData.travel = JSON.parse(d.travel || '[]'); } catch(e) { localData.travel = []; }
+    }
+
+    async function patchConfig(key, value) {
+        await fetch('/api/config', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key, value })
+        });
+    }
+
+    // Dashboard
+    async function showDashboard() {
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('entries-list').innerHTML = '<div style="color:#d9d9d6;font-size:16px;padding:16px 0;">Loading...</div>';
+        await loadData();
+        renderEntries();
+        renderTravel();
+    }
+
+    // Entries list
+    function renderEntries() {
+        var list = document.getElementById('entries-list');
+        list.innerHTML = '';
+
+        if (!localData.entries.length) {
+            list.innerHTML = '<div style="color:#d9d9d6;font-size:16px;padding:16px 0;">No entries yet.</div>';
+            return;
+        }
+
+        var sorted = localData.entries.slice().sort(function(a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        sorted.forEach(function(entry) {
+            var row = document.createElement('div');
+            row.className = 'entry-row';
+
+            var dot = document.createElement('span');
+            dot.className = 'entry-dot' + (entry.published ? ' published' : '');
+            dot.textContent = '●';
+
+            var title = document.createElement('span');
+            title.className = 'entry-title';
+            title.textContent = entry.title || 'Untitled';
+
+            var date = document.createElement('span');
+            date.className = 'entry-date';
+            date.textContent = entry.date || '';
+
+            var editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-light btn-sm';
+            editBtn.textContent = 'Edit';
+            editBtn.onclick = (function(id) { return function() { openEditor(id); }; })(entry.id);
+
+            row.appendChild(dot);
+            row.appendChild(title);
+            row.appendChild(date);
+            row.appendChild(editBtn);
+            list.appendChild(row);
+        });
+    }
+
+    // Editor
+    function openEditor(id) {
+        editingId = id;
+        currentPhotos = [];
+        isPublished = false;
+
+        if (id) {
+            var entry = localData.entries.find(function(e) { return e.id === id; });
+            if (entry) {
+                document.getElementById('editor-label').textContent = 'Edit entry';
+                document.getElementById('e-title').value = entry.title || '';
+                document.getElementById('e-date').value = entry.date || '';
+                document.getElementById('e-content').value = entry.content || '';
+                currentPhotos = (entry.photos || []).slice();
+                isPublished = !!entry.published;
+                renderPhotos();
+                updatePublishToggle();
+                document.getElementById('editor').classList.add('open');
+                return;
+            }
+        }
+
+        document.getElementById('editor-label').textContent = 'New entry';
+        document.getElementById('e-title').value = '';
+        document.getElementById('e-date').value = '';
+        document.getElementById('e-content').value = '';
+        renderPhotos();
+        updatePublishToggle();
+        document.getElementById('editor').classList.add('open');
+    }
+
+    function closeEditor() {
+        document.getElementById('editor').classList.remove('open');
+        editingId = null;
+        currentPhotos = [];
+    }
+
+    function slugify(title) {
+        return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'entry';
+    }
+
+    function generateId(title) {
+        var base = slugify(title);
+        var ids = localData.entries.map(function(e) { return e.id; });
+        if (!ids.includes(base)) return base;
+        var i = 2;
+        while (ids.includes(base + '-' + i)) i++;
+        return base + '-' + i;
+    }
+
+    async function saveEntry() {
+        var title = document.getElementById('e-title').value.trim();
+        var date = document.getElementById('e-date').value.trim();
+        var content = document.getElementById('e-content').value;
+
+        if (!title) { document.getElementById('e-title').focus(); return; }
+
+        if (editingId) {
+            var entry = localData.entries.find(function(e) { return e.id === editingId; });
+            if (entry) {
+                entry.title = title;
+                entry.date = date;
+                entry.content = content;
+                entry.photos = currentPhotos;
+                entry.published = isPublished;
+            }
+        } else {
+            var newEntry = {
+                id: generateId(title),
+                title: title,
+                date: date,
+                content: content,
+                photos: currentPhotos,
+                published: isPublished,
+                createdAt: Date.now()
+            };
+            localData.entries.push(newEntry);
+            editingId = newEntry.id;
+        }
+
+        await patchConfig('entries', JSON.stringify(localData.entries));
+        renderEntries();
+        var saveBtn = document.querySelector('#editor-inner .editor-footer .btn-dark');
+        saveBtn.textContent = 'Saved';
+        saveBtn.style.background = '#4ade80';
+        saveBtn.style.color = '#101820';
+        setTimeout(function() {
+            saveBtn.textContent = 'Save';
+            saveBtn.style.background = '';
+            saveBtn.style.color = '';
+        }, 2000);
+    }
+
+    async function deleteEntry() {
+        if (!editingId) { closeEditor(); return; }
+        if (!confirm('Delete this entry?')) return;
+        localData.entries = localData.entries.filter(function(e) { return e.id !== editingId; });
+        await patchConfig('entries', JSON.stringify(localData.entries));
+        renderEntries();
+        closeEditor();
+    }
+
+    // Published toggle
+    function togglePublished() {
+        isPublished = !isPublished;
+        updatePublishToggle();
+    }
+
+    function updatePublishToggle() {
+        var track = document.getElementById('pub-track');
+        var label = document.getElementById('pub-label');
+        if (isPublished) {
+            track.classList.add('on');
+            label.textContent = 'Published';
+            label.style.color = '#101820';
+        } else {
+            track.classList.remove('on');
+            label.textContent = 'Draft';
+            label.style.color = '#a0a09e';
+        }
+    }
+
+    // Photos
+    function addPhotos(input) {
+        var files = Array.from(input.files);
+        var pending = files.length;
+        if (!pending) return;
+        files.forEach(function(file) {
+            if (file.size > 3 * 1024 * 1024) {
+                toast(file.name + ' exceeds 3MB, skipped');
+                pending--;
+                return;
+            }
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                currentPhotos.push(e.target.result);
+                pending--;
+                if (!pending) renderPhotos();
+            };
+            reader.readAsDataURL(file);
+        });
+        input.value = '';
+    }
+
+    function removePhoto(idx) {
+        currentPhotos.splice(idx, 1);
+        renderPhotos();
+    }
+
+    function renderPhotos() {
+        var grid = document.getElementById('photos-grid');
+        grid.innerHTML = '';
+        currentPhotos.forEach(function(src, idx) {
+            var item = document.createElement('div');
+            item.className = 'photo-item';
+            var img = document.createElement('img');
+            img.src = src;
+            var btn = document.createElement('button');
+            btn.className = 'photo-remove';
+            btn.textContent = '×';
+            btn.onclick = (function(i) { return function(e) { e.stopPropagation(); removePhoto(i); }; })(idx);
+            item.appendChild(img);
+            item.appendChild(btn);
+            grid.appendChild(item);
+        });
+    }
+
+    // Travel
+    function renderTravel() {
+        var list = document.getElementById('travel-list');
+        list.innerHTML = '';
+        var today = new Date().toISOString().split('T')[0];
+        var sorted = (localData.travel || []).slice().sort(function(a, b) { return a.start < b.start ? -1 : 1; });
+        if (!sorted.length) {
+            list.innerHTML = '<div style="color:#d9d9d6;font-size:16px;padding:16px 0 4px;">No travel planned.</div>';
+            return;
+        }
+        sorted.forEach(function(t, idx) {
+            var isActive = today >= t.start && today <= t.end;
+            var row = document.createElement('div');
+            row.className = 'travel-row';
+
+            var dot = document.createElement('span');
+            dot.className = 'travel-dot' + (isActive ? ' active' : '');
+            dot.textContent = '●';
+
+            var city = document.createElement('span');
+            city.className = 'travel-city';
+            city.textContent = t.city;
+
+            var dates = document.createElement('span');
+            dates.className = 'travel-dates';
+            dates.textContent = formatDate(t.start) + ' – ' + formatDate(t.end);
+
+            var editBtn = document.createElement('button');
+            editBtn.className = 'btn btn-light btn-sm';
+            editBtn.textContent = 'Edit';
+            editBtn.onclick = (function(i) { return function() { editTravel(i); }; })(idx);
+
+            var del = document.createElement('button');
+            del.className = 'btn btn-ghost btn-sm';
+            del.textContent = '×';
+            del.style.fontSize = '18px';
+            del.style.padding = '0 4px';
+            del.onclick = (function(i) { return function() { deleteTravel(i); }; })(idx);
+
+            row.appendChild(dot);
+            row.appendChild(city);
+            row.appendChild(dates);
+            row.appendChild(editBtn);
+            row.appendChild(del);
+            list.appendChild(row);
+        });
+    }
+
+    function formatDate(str) {
+        var d = new Date(str + 'T00:00:00');
+        return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    }
+
+    function showAddTravel() {
+        editingTravelIdx = null;
+        document.getElementById('travel-form').style.display = 'block';
+        document.getElementById('travel-form-btn').textContent = 'Add';
+        document.getElementById('travel-city').focus();
+    }
+
+    function hideAddTravel() {
+        editingTravelIdx = null;
+        document.getElementById('travel-form').style.display = 'none';
+        document.getElementById('travel-city').value = '';
+        document.getElementById('travel-start').value = '';
+        document.getElementById('travel-end').value = '';
+    }
+
+    function editTravel(idx) {
+        var sorted = (localData.travel || []).slice().sort(function(a, b) { return a.start < b.start ? -1 : 1; });
+        var item = sorted[idx];
+        editingTravelIdx = localData.travel.indexOf(item);
+        document.getElementById('travel-city').value = item.city;
+        document.getElementById('travel-start').value = item.start;
+        document.getElementById('travel-end').value = item.end;
+        document.getElementById('travel-form-btn').textContent = 'Save';
+        document.getElementById('travel-form').style.display = 'block';
+        document.getElementById('travel-city').focus();
+    }
+
+    async function addTravel() {
+        var city = document.getElementById('travel-city').value.trim();
+        var start = document.getElementById('travel-start').value;
+        var end = document.getElementById('travel-end').value;
+        if (!city || !start || !end) return;
+        localData.travel = localData.travel || [];
+        if (editingTravelIdx !== null) {
+            localData.travel[editingTravelIdx] = { city: city, start: start, end: end };
+            toast('Travel updated');
+        } else {
+            localData.travel.push({ city: city, start: start, end: end });
+            toast('Travel added');
+        }
+        await patchConfig('travel', JSON.stringify(localData.travel));
+        renderTravel();
+        hideAddTravel();
+    }
+
+    async function deleteTravel(idx) {
+        var sorted = (localData.travel || []).slice().sort(function(a, b) { return a.start < b.start ? -1 : 1; });
+        var item = sorted[idx];
+        localData.travel = localData.travel.filter(function(t) { return !(t.city === item.city && t.start === item.start && t.end === item.end); });
+        await patchConfig('travel', JSON.stringify(localData.travel));
+        renderTravel();
+    }
+
+    // Toast
+    function toast(msg) {
+        var el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(function() { el.classList.remove('show'); }, 2000);
+    }
+</script>
+</body>
+</html>

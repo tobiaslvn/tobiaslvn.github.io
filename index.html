@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tobias Levin</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><line x1='50' y1='0' x2='50' y2='100' stroke='black' stroke-width='1'/><line x1='0' y1='50' x2='100' y2='50' stroke='black' stroke-width='1'/></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><line x1='50' y1='15' x2='50' y2='85' stroke='black' stroke-width='12' stroke-linecap='round'/><line x1='15' y1='50' x2='85' y2='50' stroke='black' stroke-width='12' stroke-linecap='round'/></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -14,9 +14,16 @@
         body {
             font-family: 'Instrument Sans', sans-serif;
             background: #fff;
-            color: #0b0b0b;
+            color: #101820;
             min-height: 100vh;
             padding: 60px;
+            display: flex;
+            justify-content: center;
+        }
+
+        #main-content {
+            width: 100%;
+            max-width: 560px;
         }
 
         @keyframes fade-in {
@@ -24,7 +31,7 @@
         }
 
         @keyframes fade-in-grey {
-            to { opacity: 0.4; }
+            to { opacity: 1; }
         }
 
         .word {
@@ -34,20 +41,20 @@
         }
 
         .word.grey {
+            color: #d9d9d6;
             animation: fade-in-grey 0.45s ease forwards;
         }
 
 #name-line {
             display: block;
             font-weight: 400;
-            font-size: 24px;
-            margin-bottom: 6px;
+            font-size: 16px;
             white-space: nowrap;
         }
 
         #subtitle {
             display: block;
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 20px;
         }
 
@@ -55,11 +62,11 @@
             display: flex;
             align-items: center;
             gap: 7px;
-            font-size: 14px;
-            color: #999;
+            font-size: 16px;
+            color: #d9d9d6;
             position: fixed;
             bottom: 60px;
-            left: 60px;
+            left: max(60px, calc(50% - 280px));
             opacity: 0;
             animation: fade-in 0.45s ease forwards;
             animation-delay: 1800ms;
@@ -81,21 +88,26 @@
         }
 
         #prose-container {
-            font-size: 24px;
-            line-height: 1.6;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        #subtitle {
+            line-height: 1.5;
         }
 
         #prose-container p {
-            margin-bottom: 1em;
-        }
-
-        #prose-container p:last-child {
             margin-bottom: 0;
         }
 
         a {
             color: inherit;
             text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .word.grey a:hover {
+            color: #a8a8a5;
         }
 
         /* Tooltip stack */
@@ -108,7 +120,7 @@
             position: absolute;
             left: 0;
             max-width: calc(100vw - 120px);
-            font-size: 24px;
+            font-size: 16px;
             line-height: 2;
             opacity: 0;
             animation: tooltip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -117,7 +129,7 @@
         .tooltip-item-inner {
             display: inline;
             background: #f5f5f5;
-            color: #0b0b0b;
+            color: #101820;
             border-radius: 5px;
             padding: 10px 16px;
             -webkit-box-decoration-break: clone;
@@ -128,15 +140,6 @@
             from { opacity: 0; transform: translateY(10px); }
             to   { opacity: 1; transform: translateY(0); }
         }
-
-        .word-clickable {
-            text-decoration: underline;
-            text-underline-offset: 4px;
-            text-decoration-thickness: 2px;
-            cursor: pointer;
-        }
-
-
 
         @keyframes tooltip-fade-out {
             from { opacity: 1; transform: translateY(0); }
@@ -149,7 +152,7 @@
 
         [data-swap] {
             cursor: pointer;
-            background: linear-gradient(rgba(220, 220, 220, 0.6), rgba(220, 220, 220, 0.6)) no-repeat left 72%;
+            background: linear-gradient(rgba(190, 215, 255, 0.6), rgba(190, 215, 255, 0.6)) no-repeat left 72%;
             background-size: 0% 1.1em;
             border-radius: 2px;
             padding-right: 3px;
@@ -173,40 +176,45 @@
             50%       { opacity: 0; }
         }
 
-        .tooltip-count {
-            display: inline-block;
-            vertical-align: super;
-            font-size: 10px;
-            line-height: 1;
-            color: #aaa;
-            margin-left: 1px;
-            opacity: 0;
-            transform: scale(2) translateY(-2px);
-            animation: tooltip-count-pop 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        @keyframes tooltip-count-pop {
-            0%   { opacity: 0; transform: scale(2) translateY(-2px); }
-            100% { opacity: 1; transform: scale(1) translateY(0); }
-        }
-
         .tooltip-word {
             cursor: pointer;
             text-decoration: underline;
             text-decoration-style: solid;
             text-underline-offset: 4px;
             text-decoration-thickness: 2px;
+            text-decoration-color: transparent;
+            transition: text-decoration-color 0.3s ease;
         }
 
-@media (max-width: 768px) {
+        .tooltip-word.underlined {
+            text-decoration-color: #d9d9d6;
+        }
+
+        #expand-btn {
+            display: inline-block;
+            background: #f0f0ee;
+            border: none;
+            padding: 0 5px;
+            border-radius: 999px;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.4;
+            vertical-align: middle;
+            cursor: pointer;
+            color: #101820;
+            opacity: 0;
+            animation: fade-in-grey 0.45s ease forwards;
+        }
+
+        #expand-btn:hover { opacity: 1 !important; }
+
+        @media (max-width: 768px) {
             body { padding: 30px; }
-            #name-line { margin-bottom: 4px; }
             #subtitle { margin-bottom: 6px; }
-            #prose-container { margin-top: 48px; }
             #location { bottom: 30px; left: 30px; }
             .tooltip-item {
                 max-width: calc(100vw - 60px);
-                font-size: 20px;
+                font-size: 16px;
                 line-height: 1.55;
             }
             .tooltip-item-inner {
@@ -217,62 +225,61 @@
 </head>
 <body>
 
-    <div id="name-line"></div>
-    <div id="subtitle"></div>
+    <div id="main-content">
+        <div id="name-line"></div>
+        <div id="subtitle"></div>
+        <div id="prose-container"></div>
+        <div id="tooltip-stack"></div>
+    </div>
     <div id="location">
         <span class="live-dot"></span>
-        <span>Copenhagen</span>
+        <span id="location-name">Copenhagen</span>
         <span id="location-time" style="margin-left:4px;"></span>
     </div>
-    <div id="prose-container"></div>
-    <div id="tooltip-stack"></div>
-    <div id="agentation-root"></div>
-    <script type="module" src="/src/agentation-widget.jsx"></script>
 
     <script>
         var emailHref = 'mai' + 'lto:' + 'more' + '@' + 'tobiaslevin.com';
 
         var nameWords = ['Tobias', 'Levin'];
 
-        var subtitleWords = ['Living', 'in', 'Copenhagen,', 'but', 'often', 'travelling.'];
+        var subtitleWords = ['Danish,', '1995~'];
 
         var paragraphs = [
             [
+                { text: 'Based' },
+                { text: 'in' },
+                { text: 'Copenhagen,' },
+                { text: 'but' },
+                { text: 'often' },
+                { text: 'travelling.' },
+                { text: '\n', noSpace: true },
                 { text: "I'm" },
                 { text: 'a' },
                 { text: 'generalist designer', swap: 'jack of all trades' },
                 { text: ',', noSpace: true },
                 { text: 'focused' },
                 { text: 'on' },
-                { text: 'details', swap: 'tactility', swap2: 'clarity' },
+                { text: 'details', swap: 'niceties' },
                 { text: '.', noSpace: true },
             ],
             [
                 { text: 'I' },
-                { text: 'co-founded', tooltipPart: 'co', remainder: '-founded', tooltip: '2017~ Nikolaj Honoré and I founded Anyone, later joined by Noel Heath.', tooltip2: '2023~ I continued it solo.' },
-                { text: 'Anyone,', href: 'https://anyoneworldwide.com', tooltip: 'We work with artists, brands, and designers redefining what playing cards can be.', tooltip2: "We've expanded into leather accessories and home goods.", tooltip3: 'We host pop-ups around the world.' },
+                { text: 'co-founded', tooltipPart: 'co', remainder: '-founded', tooltip: '2017~ Nikolaj Honoré and I started the company, later joined by Noel Heath.\n2022~ I continued it solo.' },
+                { text: 'Anyone,', href: 'https://anyoneworldwide.com', tooltip: 'We work with artists, brands, and designers redefining what playing cards can be.' },
                 { text: 'a' },
                 { text: 'playing' },
                 { text: 'card' },
                 { text: 'brand' },
                 { text: 'built' },
                 { text: 'around' },
-                { text: 'cardistry.', tooltip: 'Think card shuffles on peptides.', tooltip2: 'Springs, cuts, fans, chin-extensions.' },
-            ],
-            [
-                { text: 'I' },
-                { text: 'studied', tooltip: 'At SAFD.', tooltipClickWord: 'SAFD.', tooltipExpanded: 'Scandinavian Academy of Fashion Design.' },
-                { text: 'fashion,' },
-                { text: "now" },
-                { text: 'working' },
-                { text: 'on' },
-                { text: 'namesake', shake: true },
-                { text: 'label.' },
+                { text: 'cardistry.', tooltip: 'Think card shuffles on peptides.' },
             ],
             [
                 { text: 'Email', href: emailHref, grey: true },
                 { text: '\u00a0\u00a0\u00a0', grey: true },
                 { text: 'Instagram', href: 'https://instagram.com/tobiaslvn', grey: true },
+                { text: '\u00a0\u00a0\u00a0', grey: true },
+                // { text: 'Writing', href: '/writing/', grey: true },
             ],
         ];
 
@@ -293,13 +300,9 @@
 
         // Name
         var nameLine = document.getElementById('name-line');
-        var nameSpans = [];
         nameWords.forEach(function(word, i) {
-            var sp = makeWord(word + (i < nameWords.length - 1 ? '\u00a0' : ''), false);
-            nameSpans.push(sp);
-            nameLine.appendChild(sp);
+            nameLine.appendChild(makeWord(word + (i < nameWords.length - 1 ? '\u00a0' : ''), false));
         });
-        var nameIsUpper = false;
 
         var swapSpans = [];
 
@@ -307,23 +310,23 @@
         var subtitleEl = document.getElementById('subtitle');
         subtitleWords.forEach(function(word, i) {
             var span = makeWord(word, true);
-            if (word === 'travelling.') {
-                span._swapQueue = ['in Tokyo.'];
-                span.addEventListener('animationend', function() {
-                    this._fadeInDone = true;
-                    if (this._activateHighlight) this._activateHighlight();
-                }, { once: true });
-                swapSpans.push(span);
-            }
             subtitleEl.appendChild(span);
             if (i < subtitleWords.length - 1) subtitleEl.appendChild(document.createTextNode(' '));
         });
 
         // Prose paragraphs
         var container = document.getElementById('prose-container');
-        paragraphs.forEach(function(tokens) {
+
+        function renderParagraph(tokens) {
             var p = document.createElement('p');
             tokens.forEach(function(token, i) {
+                if (token.text === '\n') {
+                    var br = document.createElement('span');
+                    br.style.display = 'block';
+                    br.style.height = '12px';
+                    p.appendChild(br);
+                    return;
+                }
                 var span = document.createElement('span');
                 span.className = 'word' + (token.grey ? ' grey' : '');
                 span.style.animationDelay = delay + 'ms';
@@ -332,39 +335,20 @@
                 if (token.tooltipPart) {
                     var inner = document.createElement('span');
                     inner.dataset.tooltip = token.tooltip;
-                    if (token.tooltip2) inner.dataset.tooltip2 = token.tooltip2;
-                    inner.classList.add('tooltip-word');
+                    inner.classList.add('tooltip-word', 'underlined');
                     inner.textContent = token.tooltipPart;
                     var tipColor = TOOLTIP_COLORS[tooltipColorIdx++ % TOOLTIP_COLORS.length];
                     inner._tooltipColor = tipColor;
-                    var ctr = document.createElement('span');
-                    ctr.className = 'tooltip-count';
-                    ctr.style.animationDelay = (parseFloat(span.style.animationDelay) + 600) + 'ms';
-                    var total = 1 + (token.tooltip2 ? 1 : 0);
-                    ctr.textContent = total;
-                    ctr.dataset.total = total;
-                    inner.appendChild(ctr);
-                    inner._tooltipCounter = ctr;
                     span.appendChild(inner);
                     span.appendChild(document.createTextNode(token.remainder));
                 } else if (token.tooltip) {
                     span.dataset.tooltip = token.tooltip;
-                    if (token.tooltip2) span.dataset.tooltip2 = token.tooltip2;
-                    if (token.tooltip3) span.dataset.tooltip3 = token.tooltip3;
                     if (token.tooltipClickWord) span._tooltipClickWord = token.tooltipClickWord;
                     if (token.tooltipExpanded) span._tooltipExpanded = token.tooltipExpanded;
-                    span.classList.add('tooltip-word');
+                    span.classList.add('tooltip-word', 'underlined');
                     span.textContent = token.text;
                     var tipColor = TOOLTIP_COLORS[tooltipColorIdx++ % TOOLTIP_COLORS.length];
                     span._tooltipColor = tipColor;
-                    var ctr = document.createElement('span');
-                    ctr.className = 'tooltip-count';
-                    ctr.style.animationDelay = (parseFloat(span.style.animationDelay) + 600) + 'ms';
-                    var total = 1 + (token.tooltip2 ? 1 : 0) + (token.tooltip3 ? 1 : 0);
-                    ctr.textContent = total;
-                    ctr.dataset.total = total;
-                    span.appendChild(ctr);
-                    span._tooltipCounter = ctr;
                 } else if (token.swap) {
                     span.textContent = token.text;
                     span._swapQueue = [token.swap];
@@ -378,12 +362,9 @@
                 } else if (token.href) {
                     var a = document.createElement('a');
                     a.href = token.href;
-                    if (token.href.indexOf('mailto') === -1) a.target = '_blank';
+                    if (token.href.indexOf('mailto') === -1 && token.href.indexOf('/') !== 0) a.target = '_blank';
                     a.textContent = token.text;
                     span.appendChild(a);
-                } else if (token.shake) {
-                    span.textContent = token.text;
-                    span.dataset.shake = 'true';
                 } else {
                     span.textContent = token.text;
                 }
@@ -391,12 +372,80 @@
                 p.appendChild(span);
                 if (i < tokens.length - 1 && !tokens[i + 1].noSpace) p.appendChild(document.createTextNode(' '));
             });
-            container.appendChild(p);
+            return p;
+        }
+
+        // Always-visible first paragraph
+        var firstP = renderParagraph(paragraphs[0]);
+        container.appendChild(firstP);
+
+        // Expand button — inline at end of current paragraph
+        var expandBtn = document.createElement('button');
+        expandBtn.id = 'expand-btn';
+        expandBtn.textContent = '+';
+        expandBtn.style.animationDelay = delay + 'ms';
+        delay += step;
+        firstP.appendChild(document.createTextNode(' '));
+        firstP.appendChild(expandBtn);
+
+        // Always-visible last paragraph (Email / Instagram)
+        var emailP = renderParagraph(paragraphs[2]);
+        emailP.style.marginTop = '50px';
+        container.appendChild(emailP);
+
+        var expandableParagraphs = [paragraphs[1]];
+        var expandIndex = 0;
+
+        expandBtn.addEventListener('click', function() {
+            if (expandIndex >= expandableParagraphs.length) return;
+
+            // Swift fade out
+            expandBtn.style.transition = 'opacity 0.15s ease';
+            expandBtn.style.opacity = '0';
+
+            setTimeout(function() {
+                // Detach + from old paragraph
+                var prev = expandBtn.previousSibling;
+                if (prev && prev.nodeType === 3) prev.remove();
+                expandBtn.remove();
+
+                // Render next paragraph with fresh animation delays
+                delay = 0;
+                var tokens = expandableParagraphs[expandIndex];
+                var p = renderParagraph(tokens);
+                p.style.overflow = 'hidden';
+                p.style.maxHeight = '0';
+                p.style.marginTop = '0';
+                container.insertBefore(p, emailP);
+                void p.offsetWidth;
+                p.style.transition = 'max-height 0.5s ease, margin-top 0.4s ease';
+                p.style.maxHeight = '200px';
+                p.style.marginTop = '12px';
+                expandIndex++;
+
+
+                var isLastExpand = expandIndex >= expandableParagraphs.length;
+                if (!isLastExpand) {
+                    // Pause until sentence is done, then fade + back in
+                    var sentenceDone = (tokens.length - 1) * step + 450 + 350;
+                    setTimeout(function() {
+                        expandBtn.style.animation = 'none';
+                        expandBtn.style.transition = 'none';
+                        expandBtn.style.opacity = '0';
+                        p.appendChild(document.createTextNode(' '));
+                        p.appendChild(expandBtn);
+                        void expandBtn.offsetWidth;
+                        expandBtn.style.transition = 'opacity 0.3s ease';
+                        expandBtn.style.opacity = '1';
+                    }, sentenceDone);
+                }
+            }, 150);
         });
+
 
         // Chained highlight sweeps for swap words
         function activateSwapHighlight(span) {
-            if (span.classList.contains('grey')) span.style.opacity = '0.4';
+            span.style.opacity = span.classList.contains('grey') ? '0.4' : '1';
             span.dataset.swap = span._highlightOnly ? '' : span._swapQueue[0];
             span.addEventListener('animationend', function() {
                 var next = swapSpans[swapSpans.indexOf(span) + 1];
@@ -407,16 +456,15 @@
             }, { once: true });
         }
         if (swapSpans[0]) {
-            if (swapSpans[0]._fadeInDone) { activateSwapHighlight(swapSpans[0]); }
-            else { swapSpans[0]._activateHighlight = function() { activateSwapHighlight(swapSpans[0]); }; }
+            setTimeout(function() {
+                activateSwapHighlight(swapSpans[0]);
+            }, delay + 600);
         }
 
         // Tooltip stack
         var tooltipStack = document.getElementById('tooltip-stack');
-        var clickCounts = new Map();
         var activePillCount = 0;
         var nextSlotTop = 0;
-        var PILL_GAP = 8;
 
         var typeTimer = null;
         function typeEffect(el, target, onComplete) {
@@ -454,18 +502,7 @@
             var tooltipTarget = e.target.closest('[data-tooltip]');
             if (tooltipTarget) {
                 e.preventDefault();
-                var count = clickCounts.get(tooltipTarget) || 0;
-                var total = 1 + (tooltipTarget.dataset.tooltip2 ? 1 : 0) + (tooltipTarget.dataset.tooltip3 ? 1 : 0);
-                var idx = count % total;
-                var text = idx === 0 ? tooltipTarget.dataset.tooltip
-                         : idx === 1 ? tooltipTarget.dataset.tooltip2
-                         : tooltipTarget.dataset.tooltip3;
-                var newCount = count + 1;
-                clickCounts.set(tooltipTarget, newCount);
-                if (tooltipTarget._tooltipCounter) {
-                    var remaining = total - (newCount % total);
-                    tooltipTarget._tooltipCounter.textContent = remaining;
-                }
+                var text = tooltipTarget.dataset.tooltip;
 
                 // Cancel and fade out any existing pills
                 var hadExisting = tooltipStack.querySelectorAll('.tooltip-item').length > 0;
@@ -490,7 +527,7 @@
                         inner.appendChild(document.createTextNode(parts[0]));
                         var expandBtn = document.createElement('span');
                         expandBtn.textContent = tooltipTarget._tooltipClickWord;
-                        expandBtn.style.cssText = 'cursor:pointer;border-radius:2px;padding:0 3px;margin:0 -1px;background:linear-gradient(rgba(180,180,180,0.5),rgba(180,180,180,0.5)) no-repeat left 72%;background-size:0% 1.1em;animation:highlight-sweep 0.4s ease forwards;animation-delay:500ms;';
+                        expandBtn.style.cssText = 'cursor:pointer;border-radius:2px;padding:0 3px;margin:0 -1px;background:linear-gradient(rgba(190,215,255,0.6),rgba(190,215,255,0.6)) no-repeat left 72%;background-size:0% 1.1em;animation:highlight-sweep 0.4s ease forwards;animation-delay:500ms;';
                         expandBtn.addEventListener('click', function(e) {
                             e.stopPropagation();
                             expandBtn.style.background = 'none';
@@ -499,13 +536,16 @@
                         inner.appendChild(expandBtn);
                         if (parts[1]) inner.appendChild(document.createTextNode(parts[1]));
                     } else {
-                        inner.textContent = text;
+                        text.split('\n').forEach(function(line, i, arr) {
+                            inner.appendChild(document.createTextNode(line));
+                            if (i < arr.length - 1) inner.appendChild(document.createElement('br'));
+                        });
                     }
                     var cardColor = tooltipTarget._tooltipColor;
                     if (cardColor) {
                         inner.style.background = cardColor;
                         var brightness = parseInt(cardColor.slice(1,3),16);
-                        inner.style.color = brightness > 150 ? '#0b0b0b' : '#fff';
+                        inner.style.color = brightness > 150 ? '#101820' : '#fff';
                     }
                     item.appendChild(inner);
                     tooltipStack.appendChild(item);
@@ -537,17 +577,6 @@
                 }, delay);
             }
 
-            var shakeTarget = e.target.closest('[data-shake]');
-            if (shakeTarget) {
-                nameIsUpper = !nameIsUpper;
-                var newNames = nameIsUpper
-                    ? ['TOBIAS\u00a0', 'LEVIN']
-                    : ['Tobias\u00a0', 'Levin'];
-                typeEffect(nameSpans[0], newNames[0], function() {
-                    typeEffect(nameSpans[1], newNames[1], function() {});
-                });
-            }
-
             var swapTarget = e.target.closest('[data-swap]');
             if (swapTarget && !swapTarget._swapping && swapTarget.dataset.swap) {
                 swapTarget._swapping = true;
@@ -564,11 +593,31 @@
             }
         });
 
-        // Live Copenhagen time
+        // Location + timezone from API
+        var timezoneMap = {
+            'Copenhagen': 'Europe/Copenhagen',
+            'Paris': 'Europe/Paris',
+            'Los Angeles': 'America/Los_Angeles',
+            'New York': 'America/New_York',
+            'Tokyo': 'Asia/Tokyo'
+        };
+        var currentTimezone = 'Europe/Copenhagen';
+        fetch('/api/config').then(function(r) { return r.json(); }).then(function(d) {
+            var today = new Date().toISOString().split('T')[0];
+            var travel = [];
+            try { travel = JSON.parse(d.travel || '[]'); } catch(e) {}
+            var current = travel.find(function(t) { return today >= t.start && today <= t.end; });
+            var locationName = current ? current.city : (d.location || 'Copenhagen');
+            document.getElementById('location-name').textContent = locationName;
+            currentTimezone = timezoneMap[locationName] || 'Europe/Copenhagen';
+            updateTime();
+        });
+
+        // Live local time
         var locationTime = document.getElementById('location-time');
         function updateTime() {
             locationTime.textContent = new Date().toLocaleTimeString('en-GB', {
-                timeZone: 'Europe/Copenhagen',
+                timeZone: currentTimezone,
                 hour: '2-digit',
                 minute: '2-digit'
             });
