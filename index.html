@@ -22,8 +22,10 @@
         }
 
         #main-content {
+            position: fixed;
             width: 100%;
-            max-width: 560px;
+            max-width: min(560px, calc(50vw - 48px));
+            transform: translate(-50%, -50%);
         }
 
         @keyframes fade-in {
@@ -69,7 +71,6 @@
             left: max(60px, calc(50% - 280px));
             opacity: 0;
             animation: fade-in 0.45s ease forwards;
-            animation-delay: 1800ms;
         }
 
         .live-dot {
@@ -110,6 +111,18 @@
             color: #a8a8a5;
         }
 
+        .word:not(.grey) a {
+            text-decoration: underline wavy;
+            text-underline-offset: 4px;
+            text-decoration-thickness: 1.5px;
+            text-decoration-color: #d9d9d6;
+            transition: text-decoration-color 0.2s ease;
+        }
+
+        .word:not(.grey) a:hover {
+            text-decoration-color: #101820;
+        }
+
         /* Tooltip stack */
         #tooltip-stack {
             margin-top: 3em;
@@ -121,7 +134,7 @@
             left: 0;
             max-width: calc(100vw - 120px);
             font-size: 16px;
-            line-height: 2;
+            line-height: 2.6;
             opacity: 0;
             animation: tooltip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
@@ -134,6 +147,16 @@
             padding: 10px 16px;
             -webkit-box-decoration-break: clone;
             box-decoration-break: clone;
+        }
+
+        .tooltip-item-inner a {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+            text-decoration-color: #c9c9c6;
+        }
+
+        .tooltip-item-inner a:hover {
+            text-decoration-color: #101820;
         }
 
         @keyframes tooltip-pop {
@@ -208,14 +231,41 @@
 
         #expand-btn:hover { opacity: 1 !important; }
 
+        .crosshair {
+            position: fixed;
+            background: #e8e8e6;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .crosshair.vertical {
+            left: 50%;
+            top: 0;
+            width: 1px;
+            height: 100vh;
+        }
+
+        .crosshair.horizontal {
+            top: 50%;
+            left: 0;
+            height: 1px;
+            width: 100vw;
+        }
+
         @media (max-width: 768px) {
             body { padding: 30px; }
+            #main-content {
+                transform: translate(-50%, -50%) rotate(90deg);
+                max-width: min(560px, calc(50vh - 48px));
+            }
             #subtitle { margin-bottom: 6px; }
+            #name-line, #subtitle, #prose-container, #location { font-size: 13px; }
+            #expand-btn { font-size: 12px; }
             #location { bottom: 30px; left: 30px; }
             .tooltip-item {
                 max-width: calc(100vw - 60px);
-                font-size: 16px;
-                line-height: 1.55;
+                font-size: 13px;
+                line-height: 2;
             }
             .tooltip-item-inner {
                 padding: 2px 5px;
@@ -224,6 +274,9 @@
     </style>
 </head>
 <body>
+
+    <div class="crosshair vertical"></div>
+    <div class="crosshair horizontal"></div>
 
     <div id="main-content">
         <div id="name-line"></div>
@@ -242,42 +295,55 @@
 
         var nameWords = ['Tobias', 'Levin'];
 
-        var subtitleWords = ['Danish,', '1995~'];
+        var subtitleWords = ['Danish,', 'b.', '1995'];
 
         var paragraphs = [
             [
                 { text: 'Based' },
                 { text: 'in' },
                 { text: 'Copenhagen,' },
-                { text: 'but' },
                 { text: 'often' },
                 { text: 'travelling.' },
                 { text: '\n', noSpace: true },
-                { text: "I'm" },
-                { text: 'a' },
-                { text: 'generalist designer', swap: 'jack of all trades' },
-                { text: ',', noSpace: true },
-                { text: 'focused' },
-                { text: 'on' },
-                { text: 'details', swap: 'niceties' },
-                { text: '.', noSpace: true },
-            ],
-            [
-                { text: 'I' },
-                { text: 'co-founded', tooltipPart: 'co', remainder: '-founded', tooltip: '2017~ Nikolaj Honoré and I started the company, later joined by Noel Heath.\n2022~ I continued it solo.' },
-                { text: 'Anyone,', href: 'https://anyoneworldwide.com', tooltip: 'We work with artists, brands, and designers redefining what playing cards can be.' },
+                { text: 'Designer' },
+                { text: 'working' },
+                { text: 'across' },
+                { text: 'physical' },
+                { text: 'products,' },
+                { text: 'software,' },
+                { text: 'and' },
+                { text: 'brand.' },
+                { text: 'Founder' },
+                { text: 'of' },
+                { text: 'Anyone,', href: 'https://anyoneworldwide.com' },
                 { text: 'a' },
                 { text: 'playing' },
                 { text: 'card' },
-                { text: 'brand' },
-                { text: 'built' },
-                { text: 'around' },
-                { text: 'cardistry.', tooltip: 'Think card shuffles on peptides.' },
+                { text: 'company,' },
+                { text: 'since' },
+                { text: '2017.' },
+            ],
+            [
+                { text: 'Currently' },
+                { text: 'open' },
+                { text: 'to' },
+                { text: 'select' },
+                { text: 'projects' },
+                { text: 'and' },
+                { text: 'collaborations.' },
+                { text: 'If' },
+                { text: "you'd" },
+                { text: 'like' },
+                { text: 'to' },
+                { text: 'work' },
+                { text: 'together,' },
+                { text: 'reach out', href: emailHref },
+                { text: '.', noSpace: true },
             ],
             [
                 { text: 'Email', href: emailHref, grey: true },
                 { text: '\u00a0\u00a0\u00a0', grey: true },
-                { text: 'Instagram', href: 'https://instagram.com/tobiaslvn', grey: true },
+                { text: 'Instagram', href: 'https://instagram.com/tobiaslevins', grey: true },
                 { text: '\u00a0\u00a0\u00a0', grey: true },
                 // { text: 'Writing', href: '/writing/', grey: true },
             ],
@@ -287,13 +353,12 @@
         var tooltipColorIdx = 0;
 
         var delay = 0;
-        var step = 40;
+        var step = 150;
 
         function makeWord(text, grey, extraClass) {
             var span = document.createElement('span');
             span.className = 'word' + (grey ? ' grey' : '') + (extraClass ? ' ' + extraClass : '');
             span.style.animationDelay = delay + 'ms';
-            delay += step;
             span.textContent = text;
             return span;
         }
@@ -313,6 +378,7 @@
             subtitleEl.appendChild(span);
             if (i < subtitleWords.length - 1) subtitleEl.appendChild(document.createTextNode(' '));
         });
+        delay += step;
 
         // Prose paragraphs
         var container = document.getElementById('prose-container');
@@ -330,7 +396,6 @@
                 var span = document.createElement('span');
                 span.className = 'word' + (token.grey ? ' grey' : '');
                 span.style.animationDelay = delay + 'ms';
-                delay += step;
 
                 if (token.tooltipPart) {
                     var inner = document.createElement('span');
@@ -392,6 +457,25 @@
         var emailP = renderParagraph(paragraphs[2]);
         emailP.style.marginTop = '50px';
         container.appendChild(emailP);
+        delay += step;
+        document.getElementById('location').style.animationDelay = delay + 'ms';
+
+        // Each segment drifts in from a random direction near its position
+        [[nameLine, subtitleEl], [firstP], [emailP], [document.getElementById('location')]].forEach(function(els, i) {
+            var angle = Math.random() * Math.PI * 2;
+            var dist = 5 + Math.random() * 5;
+            var dx = Math.cos(angle) * dist;
+            var dy = Math.sin(angle) * dist;
+            els.forEach(function(el) {
+                el.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
+            });
+            requestAnimationFrame(function() { requestAnimationFrame(function() {
+                els.forEach(function(el) {
+                    el.style.transition = 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) ' + (i * step) + 'ms';
+                    el.style.transform = 'translate(0, 0)';
+                });
+            }); });
+        });
 
         var expandableParagraphs = [paragraphs[1]];
         var expandIndex = 0;
@@ -537,7 +621,18 @@
                         if (parts[1]) inner.appendChild(document.createTextNode(parts[1]));
                     } else {
                         text.split('\n').forEach(function(line, i, arr) {
-                            inner.appendChild(document.createTextNode(line));
+                            line.split(/(\[[^\]]+\]\([^)]+\))/).forEach(function(part) {
+                                var m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+                                if (m) {
+                                    var a = document.createElement('a');
+                                    a.textContent = m[1];
+                                    a.href = m[2];
+                                    a.target = '_blank';
+                                    inner.appendChild(a);
+                                } else if (part) {
+                                    inner.appendChild(document.createTextNode(part));
+                                }
+                            });
                             if (i < arr.length - 1) inner.appendChild(document.createElement('br'));
                         });
                     }
@@ -593,6 +688,25 @@
             }
         });
 
+        // Quadrant grid: content lives in one of the 4 cells made by the crosshair.
+        // Desktop follows hover; mobile follows taps outside the content.
+        var mainContent = document.getElementById('main-content');
+        function moveToQuadrant(x, y) {
+            mainContent.style.left = (x < window.innerWidth / 2 ? 25 : 75) + '%';
+            mainContent.style.top = (y < window.innerHeight / 2 ? 25 : 75) + '%';
+        }
+        moveToQuadrant(0, 0);
+        if (window.matchMedia('(hover: hover)').matches) {
+            document.addEventListener('mousemove', function(e) {
+                moveToQuadrant(e.clientX, e.clientY);
+            });
+        } else {
+            document.addEventListener('click', function(e) {
+                if (mainContent.contains(e.target)) return;
+                moveToQuadrant(e.clientX, e.clientY);
+            });
+        }
+
         // Location + timezone from API
         var timezoneMap = {
             'Copenhagen': 'Europe/Copenhagen',
@@ -624,6 +738,10 @@
         }
         updateTime();
         setInterval(updateTime, 1000);
+    </script>
+    <script type="module">
+        // Dev-only: agentation feedback overlay (needs the Vite dev server)
+        if (location.hostname === 'localhost') import('/src/agentation-widget.jsx');
     </script>
 
 </body>
