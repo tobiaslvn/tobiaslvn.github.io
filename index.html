@@ -14,55 +14,134 @@
         body {
             font-family: 'Instrument Sans', sans-serif;
             background: #fff;
-            color: #101820;
+            color: #0b0b0b;
             min-height: 100vh;
-            padding: 60px;
-            display: flex;
-            justify-content: center;
+            overflow: hidden;
         }
 
-        #main-content {
+        /* Crosshair dividing the screen into 4 quadrants */
+        .crosshair {
+            position: fixed;
+            background: #0b0b0b;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .crosshair.vertical {
+            left: 50%;
+            top: 0;
+            width: 1px;
+            height: 100vh;
+            transform: scaleY(0);
+            animation: crosshair-grow-v 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .crosshair.horizontal {
+            top: 50%;
+            left: 0;
+            height: 1px;
+            width: 100vw;
+            transform: scaleX(0);
+            animation: crosshair-grow-h 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes crosshair-grow-v {
+            to { transform: scaleY(1); }
+        }
+
+        @keyframes crosshair-grow-h {
+            to { transform: scaleX(1); }
+        }
+
+        /* Hovered quadrant turns black */
+        .quad-bg {
+            position: fixed;
+            width: 50vw;
+            height: 50vh;
+            background: #0b0b0b;
+            display: none;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .quad-bg.active { display: block; }
+
+        .quad-bg.tl { top: 0; left: 0; }
+        .quad-bg.tr { top: 0; right: 0; }
+        .quad-bg.br { bottom: 0; right: 0; }
+        .quad-bg.bl { bottom: 0; left: 0; }
+
+        /* One content block per quadrant, revealed on hover/tap */
+        .quad-content {
             position: fixed;
             width: 100%;
             max-width: min(560px, calc(50vw - 48px));
             transform: translate(-50%, -50%);
-        }
-
-        @keyframes fade-in {
-            to { opacity: 1; }
-        }
-
-        @keyframes fade-in-grey {
-            to { opacity: 1; }
-        }
-
-        .word {
-            display: inline;
             opacity: 0;
-            animation: fade-in 0.45s ease forwards;
+            visibility: hidden;
+            pointer-events: none;
+            /* White text + difference blend: reads black on the white page,
+               inverts to white as the liquid flows underneath it */
+            color: #fff;
+            mix-blend-mode: difference;
         }
 
-        .word.grey {
-            color: #d9d9d6;
-            animation: fade-in-grey 0.45s ease forwards;
+        .quad-content.active {
+            visibility: visible;
+            pointer-events: auto;
+            animation: quad-reveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
 
-#name-line {
-            display: block;
+        @keyframes quad-reveal {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        #quad-tl { left: 25%; top: 25%; }
+        #quad-tr { left: 75%; top: 25%; }
+        #quad-bl { left: 25%; top: 75%; }
+        #quad-br { left: 75%; top: 75%; }
+
+        #name-line {
             font-weight: 400;
             font-size: 16px;
             white-space: nowrap;
         }
 
         #subtitle {
-            display: block;
             font-size: 16px;
-            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #d9d9d6;
         }
 
+        .prose {
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .prose a {
+            text-decoration: underline wavy;
+            text-underline-offset: 4px;
+            text-decoration-thickness: 1.5px;
+            text-decoration-color: #d9d9d6;
+            transition: text-decoration-color 0.2s ease;
+        }
+
+        .prose a:hover {
+            text-decoration-color: #fff;
+        }
+
+        /* Bottom bar: live location + contact links */
         #location {
             display: flex;
             align-items: center;
+            flex-wrap: wrap;
             gap: 7px;
             font-size: 16px;
             color: #d9d9d6;
@@ -71,7 +150,12 @@
             left: max(60px, calc(50% - 280px));
             opacity: 0;
             animation: fade-in 0.45s ease forwards;
+            animation-delay: 300ms;
         }
+
+        #location a { margin-left: 14px; }
+
+        #location a:hover { color: #a8a8a5; }
 
         .live-dot {
             width: 5px;
@@ -88,622 +172,92 @@
             100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
         }
 
-        #prose-container {
-            font-size: 16px;
-            line-height: 1.5;
-        }
-
-        #subtitle {
-            line-height: 1.5;
-        }
-
-        #prose-container p {
-            margin-bottom: 0;
-        }
-
-        a {
-            color: inherit;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        .word.grey a:hover {
-            color: #a8a8a5;
-        }
-
-        .word:not(.grey) a {
-            text-decoration: underline wavy;
-            text-underline-offset: 4px;
-            text-decoration-thickness: 1.5px;
-            text-decoration-color: #d9d9d6;
-            transition: text-decoration-color 0.2s ease;
-        }
-
-        .word:not(.grey) a:hover {
-            text-decoration-color: #101820;
-        }
-
-        /* Tooltip stack */
-        #tooltip-stack {
-            margin-top: 3em;
-            position: relative;
-        }
-
-        .tooltip-item {
-            position: absolute;
-            left: 0;
-            max-width: calc(100vw - 120px);
-            font-size: 16px;
-            line-height: 2.6;
-            opacity: 0;
-            animation: tooltip-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
-
-        .tooltip-item-inner {
-            display: inline;
-            background: #f5f5f5;
-            color: #101820;
-            border-radius: 5px;
-            padding: 10px 16px;
-            -webkit-box-decoration-break: clone;
-            box-decoration-break: clone;
-        }
-
-        .tooltip-item-inner a {
-            text-decoration: underline;
-            text-underline-offset: 3px;
-            text-decoration-color: #c9c9c6;
-        }
-
-        .tooltip-item-inner a:hover {
-            text-decoration-color: #101820;
-        }
-
-        @keyframes tooltip-pop {
-            from { opacity: 0; transform: translateY(10px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes tooltip-fade-out {
-            from { opacity: 1; transform: translateY(0); }
-            to   { opacity: 0; transform: translateY(-10px); }
-        }
-
-        .tooltip-item.fade-out {
-            animation: tooltip-fade-out 0.4s cubic-bezier(0.4, 0, 1, 1) forwards;
-        }
-
-        [data-swap] {
-            cursor: pointer;
-            background: linear-gradient(rgba(190, 215, 255, 0.6), rgba(190, 215, 255, 0.6)) no-repeat left 72%;
-            background-size: 0% 1.1em;
-            border-radius: 2px;
-            padding-right: 3px;
-            margin-right: -3px;
-            animation: highlight-sweep 0.4s ease forwards !important;
-        }
-
-        @keyframes highlight-sweep {
-            to { background-size: 100% 1.1em; }
-        }
-
-        .typing { position: relative; }
-        .typing::after {
-            content: '|';
-            position: absolute;
-            left: 100%;
-            animation: blink 0.6s step-end infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50%       { opacity: 0; }
-        }
-
-        .tooltip-word {
-            cursor: pointer;
-            text-decoration: underline;
-            text-decoration-style: solid;
-            text-underline-offset: 4px;
-            text-decoration-thickness: 2px;
-            text-decoration-color: transparent;
-            transition: text-decoration-color 0.3s ease;
-        }
-
-        .tooltip-word.underlined {
-            text-decoration-color: #d9d9d6;
-        }
-
-        #expand-btn {
-            display: inline-block;
-            background: #f0f0ee;
-            border: none;
-            padding: 0 5px;
-            border-radius: 999px;
-            font-family: inherit;
-            font-size: 15px;
-            line-height: 1.4;
-            vertical-align: middle;
-            cursor: pointer;
-            color: #101820;
-            opacity: 0;
-            animation: fade-in-grey 0.45s ease forwards;
-        }
-
-        #expand-btn:hover { opacity: 1 !important; }
-
-        .crosshair {
-            position: fixed;
-            background: #e8e8e6;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .crosshair.vertical {
-            left: 50%;
-            top: 0;
-            width: 1px;
-            height: 100vh;
-        }
-
-        .crosshair.horizontal {
-            top: 50%;
-            left: 0;
-            height: 1px;
-            width: 100vw;
+        @keyframes fade-in {
+            to { opacity: 1; }
         }
 
         @media (max-width: 768px) {
-            body { padding: 30px; }
-            #main-content {
-                transform: translate(-50%, -50%) rotate(90deg);
-                max-width: min(560px, calc(50vh - 48px));
+            .quad-content {
+                max-width: min(560px, calc(50vw - 32px));
             }
-            #subtitle { margin-bottom: 6px; }
-            #name-line, #subtitle, #prose-container, #location { font-size: 13px; }
-            #expand-btn { font-size: 12px; }
+            #name-line, #subtitle, .prose, #location { font-size: 11px; }
             #location { bottom: 30px; left: 30px; }
-            .tooltip-item {
-                max-width: calc(100vw - 60px);
-                font-size: 13px;
-                line-height: 2;
-            }
-            .tooltip-item-inner {
-                padding: 2px 5px;
-            }
         }
     </style>
 </head>
 <body>
 
+    <div class="quad-bg tl"></div>
+    <div class="quad-bg tr"></div>
+    <div class="quad-bg br"></div>
+    <div class="quad-bg bl"></div>
+
     <div class="crosshair vertical"></div>
     <div class="crosshair horizontal"></div>
 
-    <div id="main-content">
-        <div id="name-line"></div>
-        <div id="subtitle"></div>
-        <div id="prose-container"></div>
-        <div id="tooltip-stack"></div>
+    <div class="quad-content" id="quad-tl">
+        <div class="quad-inner">
+            <div id="name-line">Tobias Levin</div>
+            <div id="subtitle">Danish, b. 1995</div>
+        </div>
     </div>
+    <div class="quad-content" id="quad-tr">
+        <div class="quad-inner prose">Based in Copenhagen, often travelling.</div>
+    </div>
+    <div class="quad-content" id="quad-bl">
+        <div class="quad-inner prose">Designer working across physical products, software, and brand. Founder of <a href="https://anyoneworldwide.com" target="_blank">Anyone</a>, a playing card company, since 2017.</div>
+    </div>
+    <div class="quad-content" id="quad-br">
+        <div class="quad-inner prose">Currently open to select projects and collaborations. If you'd like to work together, <a id="email-link" href="#">reach out</a>.</div>
+    </div>
+
     <div id="location">
         <span class="live-dot"></span>
         <span id="location-name">Copenhagen</span>
         <span id="location-time" style="margin-left:4px;"></span>
+        <a id="email-footer-link" href="#">Email</a>
+        <a href="https://instagram.com/tobiaslevins" target="_blank">Instagram</a>
     </div>
 
     <script>
         var emailHref = 'mai' + 'lto:' + 'more' + '@' + 'tobiaslevin.com';
+        document.getElementById('email-link').href = emailHref;
+        document.getElementById('email-footer-link').href = emailHref;
 
-        var nameWords = ['Tobias', 'Levin'];
-
-        var subtitleWords = ['Danish,', 'b.', '1995'];
-
-        var paragraphs = [
-            [
-                { text: 'Based' },
-                { text: 'in' },
-                { text: 'Copenhagen,' },
-                { text: 'often' },
-                { text: 'travelling.' },
-                { text: '\n', noSpace: true },
-                { text: 'Designer' },
-                { text: 'working' },
-                { text: 'across' },
-                { text: 'physical' },
-                { text: 'products,' },
-                { text: 'software,' },
-                { text: 'and' },
-                { text: 'brand.' },
-                { text: 'Founder' },
-                { text: 'of' },
-                { text: 'Anyone,', href: 'https://anyoneworldwide.com' },
-                { text: 'a' },
-                { text: 'playing' },
-                { text: 'card' },
-                { text: 'company,' },
-                { text: 'since' },
-                { text: '2017.' },
-            ],
-            [
-                { text: 'Currently' },
-                { text: 'open' },
-                { text: 'to' },
-                { text: 'select' },
-                { text: 'projects' },
-                { text: 'and' },
-                { text: 'collaborations.' },
-                { text: 'If' },
-                { text: "you'd" },
-                { text: 'like' },
-                { text: 'to' },
-                { text: 'work' },
-                { text: 'together,' },
-                { text: 'reach out', href: emailHref },
-                { text: '.', noSpace: true },
-            ],
-            [
-                { text: 'Email', href: emailHref, grey: true },
-                { text: '\u00a0\u00a0\u00a0', grey: true },
-                { text: 'Instagram', href: 'https://instagram.com/tobiaslevins', grey: true },
-                { text: '\u00a0\u00a0\u00a0', grey: true },
-                // { text: 'Writing', href: '/writing/', grey: true },
-            ],
-        ];
-
-        var TOOLTIP_COLORS = ['#f5f5f5', '#f5f5f5', '#f5f5f5', '#f5f5f5'];
-        var tooltipColorIdx = 0;
-
-        var delay = 0;
-        var step = 150;
-
-        function makeWord(text, grey, extraClass) {
-            var span = document.createElement('span');
-            span.className = 'word' + (grey ? ' grey' : '') + (extraClass ? ' ' + extraClass : '');
-            span.style.animationDelay = delay + 'ms';
-            span.textContent = text;
-            return span;
-        }
-
-        // Name
-        var nameLine = document.getElementById('name-line');
-        nameWords.forEach(function(word, i) {
-            nameLine.appendChild(makeWord(word + (i < nameWords.length - 1 ? '\u00a0' : ''), false));
+        // Quadrant reveal: hover on desktop, tap on mobile
+        var quads = {
+            tl: document.getElementById('quad-tl'),
+            tr: document.getElementById('quad-tr'),
+            bl: document.getElementById('quad-bl'),
+            br: document.getElementById('quad-br')
+        };
+        var quadBgs = {};
+        Object.keys(quads).forEach(function(k) {
+            quadBgs[k] = document.querySelector('.quad-bg.' + k);
         });
+        var activeQuad = null;
 
-        var swapSpans = [];
-
-        // Subtitle (grey)
-        var subtitleEl = document.getElementById('subtitle');
-        subtitleWords.forEach(function(word, i) {
-            var span = makeWord(word, true);
-            subtitleEl.appendChild(span);
-            if (i < subtitleWords.length - 1) subtitleEl.appendChild(document.createTextNode(' '));
-        });
-        delay += step;
-
-        // Prose paragraphs
-        var container = document.getElementById('prose-container');
-
-        function renderParagraph(tokens) {
-            var p = document.createElement('p');
-            tokens.forEach(function(token, i) {
-                if (token.text === '\n') {
-                    var br = document.createElement('span');
-                    br.style.display = 'block';
-                    br.style.height = '12px';
-                    p.appendChild(br);
-                    return;
-                }
-                var span = document.createElement('span');
-                span.className = 'word' + (token.grey ? ' grey' : '');
-                span.style.animationDelay = delay + 'ms';
-
-                if (token.tooltipPart) {
-                    var inner = document.createElement('span');
-                    inner.dataset.tooltip = token.tooltip;
-                    inner.classList.add('tooltip-word', 'underlined');
-                    inner.textContent = token.tooltipPart;
-                    var tipColor = TOOLTIP_COLORS[tooltipColorIdx++ % TOOLTIP_COLORS.length];
-                    inner._tooltipColor = tipColor;
-                    span.appendChild(inner);
-                    span.appendChild(document.createTextNode(token.remainder));
-                } else if (token.tooltip) {
-                    span.dataset.tooltip = token.tooltip;
-                    if (token.tooltipClickWord) span._tooltipClickWord = token.tooltipClickWord;
-                    if (token.tooltipExpanded) span._tooltipExpanded = token.tooltipExpanded;
-                    span.classList.add('tooltip-word', 'underlined');
-                    span.textContent = token.text;
-                    var tipColor = TOOLTIP_COLORS[tooltipColorIdx++ % TOOLTIP_COLORS.length];
-                    span._tooltipColor = tipColor;
-                } else if (token.swap) {
-                    span.textContent = token.text;
-                    span._swapQueue = [token.swap];
-                    if (token.swap2) span._swapQueue.push(token.swap2);
-                    span.addEventListener('animationend', function() {
-                        this.style.opacity = '1';
-                        this._fadeInDone = true;
-                        if (this._activateHighlight) this._activateHighlight();
-                    }, { once: true });
-                    swapSpans.push(span);
-                } else if (token.href) {
-                    var a = document.createElement('a');
-                    a.href = token.href;
-                    if (token.href.indexOf('mailto') === -1 && token.href.indexOf('/') !== 0) a.target = '_blank';
-                    a.textContent = token.text;
-                    span.appendChild(a);
-                } else {
-                    span.textContent = token.text;
-                }
-
-                p.appendChild(span);
-                if (i < tokens.length - 1 && !tokens[i + 1].noSpace) p.appendChild(document.createTextNode(' '));
+        function setQuadrant(x, y) {
+            var key = (y < window.innerHeight / 2 ? 't' : 'b') + (x < window.innerWidth / 2 ? 'l' : 'r');
+            if (key === activeQuad) return;
+            activeQuad = key;
+            Object.keys(quads).forEach(function(k) {
+                quads[k].classList.toggle('active', k === key);
+                quadBgs[k].classList.toggle('active', k === key);
             });
-            return p;
         }
 
-        // Always-visible first paragraph
-        var firstP = renderParagraph(paragraphs[0]);
-        container.appendChild(firstP);
+        // First box on load: name + subtitle
+        setQuadrant(0, 0);
 
-        // Expand button — inline at end of current paragraph
-        var expandBtn = document.createElement('button');
-        expandBtn.id = 'expand-btn';
-        expandBtn.textContent = '+';
-        expandBtn.style.animationDelay = delay + 'ms';
-        delay += step;
-        firstP.appendChild(document.createTextNode(' '));
-        firstP.appendChild(expandBtn);
-
-        // Always-visible last paragraph (Email / Instagram)
-        var emailP = renderParagraph(paragraphs[2]);
-        emailP.style.marginTop = '50px';
-        container.appendChild(emailP);
-        delay += step;
-        document.getElementById('location').style.animationDelay = delay + 'ms';
-
-        // Each segment drifts in from a random direction near its position
-        [[nameLine, subtitleEl], [firstP], [emailP], [document.getElementById('location')]].forEach(function(els, i) {
-            var angle = Math.random() * Math.PI * 2;
-            var dist = 5 + Math.random() * 5;
-            var dx = Math.cos(angle) * dist;
-            var dy = Math.sin(angle) * dist;
-            els.forEach(function(el) {
-                el.style.transform = 'translate(' + dx + 'px, ' + dy + 'px)';
-            });
-            requestAnimationFrame(function() { requestAnimationFrame(function() {
-                els.forEach(function(el) {
-                    el.style.transition = 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1) ' + (i * step) + 'ms';
-                    el.style.transform = 'translate(0, 0)';
-                });
-            }); });
-        });
-
-        var expandableParagraphs = [paragraphs[1]];
-        var expandIndex = 0;
-
-        expandBtn.addEventListener('click', function() {
-            if (expandIndex >= expandableParagraphs.length) return;
-
-            // Swift fade out
-            expandBtn.style.transition = 'opacity 0.15s ease';
-            expandBtn.style.opacity = '0';
-
-            setTimeout(function() {
-                // Detach + from old paragraph
-                var prev = expandBtn.previousSibling;
-                if (prev && prev.nodeType === 3) prev.remove();
-                expandBtn.remove();
-
-                // Render next paragraph with fresh animation delays
-                delay = 0;
-                var tokens = expandableParagraphs[expandIndex];
-                var p = renderParagraph(tokens);
-                p.style.overflow = 'hidden';
-                p.style.maxHeight = '0';
-                p.style.marginTop = '0';
-                container.insertBefore(p, emailP);
-                void p.offsetWidth;
-                p.style.transition = 'max-height 0.5s ease, margin-top 0.4s ease';
-                p.style.maxHeight = '200px';
-                p.style.marginTop = '12px';
-                expandIndex++;
-
-
-                var isLastExpand = expandIndex >= expandableParagraphs.length;
-                if (!isLastExpand) {
-                    // Pause until sentence is done, then fade + back in
-                    var sentenceDone = (tokens.length - 1) * step + 450 + 350;
-                    setTimeout(function() {
-                        expandBtn.style.animation = 'none';
-                        expandBtn.style.transition = 'none';
-                        expandBtn.style.opacity = '0';
-                        p.appendChild(document.createTextNode(' '));
-                        p.appendChild(expandBtn);
-                        void expandBtn.offsetWidth;
-                        expandBtn.style.transition = 'opacity 0.3s ease';
-                        expandBtn.style.opacity = '1';
-                    }, sentenceDone);
-                }
-            }, 150);
-        });
-
-
-        // Chained highlight sweeps for swap words
-        function activateSwapHighlight(span) {
-            span.style.opacity = span.classList.contains('grey') ? '0.4' : '1';
-            span.dataset.swap = span._highlightOnly ? '' : span._swapQueue[0];
-            span.addEventListener('animationend', function() {
-                var next = swapSpans[swapSpans.indexOf(span) + 1];
-                if (next) {
-                    if (next._fadeInDone) { activateSwapHighlight(next); }
-                    else { next._activateHighlight = function() { activateSwapHighlight(next); }; }
-                }
-            }, { once: true });
-        }
-        if (swapSpans[0]) {
-            setTimeout(function() {
-                activateSwapHighlight(swapSpans[0]);
-            }, delay + 600);
-        }
-
-        // Tooltip stack
-        var tooltipStack = document.getElementById('tooltip-stack');
-        var activePillCount = 0;
-        var nextSlotTop = 0;
-
-        var typeTimer = null;
-        function typeEffect(el, target, onComplete) {
-            if (typeTimer) clearTimeout(typeTimer);
-            var current = el.textContent;
-            var deleteSteps = [];
-            for (var i = current.length - 1; i >= 0; i--) deleteSteps.push(current.slice(0, i));
-            var typeSteps = [];
-            for (var j = 1; j <= target.length; j++) typeSteps.push(target.slice(0, j));
-            el.classList.add('typing');
-            var stepIndex = 0;
-            function next() {
-                if (stepIndex < deleteSteps.length) {
-                    el.textContent = deleteSteps[stepIndex++];
-                    typeTimer = setTimeout(next, 50);
-                } else if (stepIndex === deleteSteps.length) {
-                    stepIndex++;
-                    typeTimer = setTimeout(next, 180);
-                } else {
-                    var typeIndex = stepIndex - deleteSteps.length - 1;
-                    if (typeIndex < typeSteps.length) {
-                        el.textContent = typeSteps[typeIndex];
-                        stepIndex++;
-                        typeTimer = setTimeout(next, 50);
-                    } else {
-                        el.classList.remove('typing');
-                        if (onComplete) onComplete();
-                    }
-                }
-            }
-            next();
-        }
-
-        document.addEventListener('click', function(e) {
-            var tooltipTarget = e.target.closest('[data-tooltip]');
-            if (tooltipTarget) {
-                e.preventDefault();
-                var text = tooltipTarget.dataset.tooltip;
-
-                // Cancel and fade out any existing pills
-                var hadExisting = tooltipStack.querySelectorAll('.tooltip-item').length > 0;
-                tooltipStack.querySelectorAll('.tooltip-item').forEach(function(p) {
-                    p._cancelled = true;
-                    p.classList.add('fade-out');
-                });
-                activePillCount = 0;
-                nextSlotTop = 0;
-
-                var delay = hadExisting ? 400 : 0;
-                setTimeout(function() {
-                    tooltipStack.innerHTML = '';
-                    activePillCount++;
-                    var item = document.createElement('div');
-                    item.className = 'tooltip-item';
-                    item.style.top = '0px';
-                    var inner = document.createElement('span');
-                    inner.className = 'tooltip-item-inner';
-                    if (tooltipTarget._tooltipClickWord && text.includes(tooltipTarget._tooltipClickWord)) {
-                        var parts = text.split(tooltipTarget._tooltipClickWord);
-                        inner.appendChild(document.createTextNode(parts[0]));
-                        var expandBtn = document.createElement('span');
-                        expandBtn.textContent = tooltipTarget._tooltipClickWord;
-                        expandBtn.style.cssText = 'cursor:pointer;border-radius:2px;padding:0 3px;margin:0 -1px;background:linear-gradient(rgba(190,215,255,0.6),rgba(190,215,255,0.6)) no-repeat left 72%;background-size:0% 1.1em;animation:highlight-sweep 0.4s ease forwards;animation-delay:500ms;';
-                        expandBtn.addEventListener('click', function(e) {
-                            e.stopPropagation();
-                            expandBtn.style.background = 'none';
-                            typeEffect(expandBtn, tooltipTarget._tooltipExpanded);
-                        });
-                        inner.appendChild(expandBtn);
-                        if (parts[1]) inner.appendChild(document.createTextNode(parts[1]));
-                    } else {
-                        text.split('\n').forEach(function(line, i, arr) {
-                            line.split(/(\[[^\]]+\]\([^)]+\))/).forEach(function(part) {
-                                var m = part.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
-                                if (m) {
-                                    var a = document.createElement('a');
-                                    a.textContent = m[1];
-                                    a.href = m[2];
-                                    a.target = '_blank';
-                                    inner.appendChild(a);
-                                } else if (part) {
-                                    inner.appendChild(document.createTextNode(part));
-                                }
-                            });
-                            if (i < arr.length - 1) inner.appendChild(document.createElement('br'));
-                        });
-                    }
-                    var cardColor = tooltipTarget._tooltipColor;
-                    if (cardColor) {
-                        inner.style.background = cardColor;
-                        var brightness = parseInt(cardColor.slice(1,3),16);
-                        inner.style.color = brightness > 150 ? '#101820' : '#fff';
-                    }
-                    item.appendChild(inner);
-                    tooltipStack.appendChild(item);
-
-                    requestAnimationFrame(function() {
-                        nextSlotTop = item.offsetHeight;
-                        tooltipStack.style.height = nextSlotTop + 'px';
-                    });
-
-                    var wordCount = (tooltipTarget._tooltipExpanded ? 'At ' + tooltipTarget._tooltipExpanded : text).trim().split(/\s+/).length;
-                    setTimeout(function(el) {
-                        if (el._cancelled) return;
-                        el.classList.add('fade-out');
-                        setTimeout(function() {
-                            if (el._cancelled) { el.remove(); return; }
-                            el.style.visibility = 'hidden';
-                            activePillCount--;
-                            if (activePillCount === 0) {
-                                setTimeout(function() {
-                                    if (activePillCount === 0) {
-                                        tooltipStack.innerHTML = '';
-                                        tooltipStack.style.height = '';
-                                        nextSlotTop = 0;
-                                    }
-                                }, 100);
-                            }
-                        }, 400);
-                    }.bind(null, item), wordCount * 1500);
-                }, delay);
-            }
-
-            var swapTarget = e.target.closest('[data-swap]');
-            if (swapTarget && !swapTarget._swapping && swapTarget.dataset.swap) {
-                swapTarget._swapping = true;
-                var swapText = swapTarget.dataset.swap;
-                swapTarget.removeAttribute('data-swap');
-                typeEffect(swapTarget, swapText, function() {
-                    swapTarget._swapping = false;
-                    var idx = swapTarget._swapQueue.indexOf(swapText);
-                    if (idx < swapTarget._swapQueue.length - 1) {
-                        void swapTarget.offsetWidth;
-                        swapTarget.dataset.swap = swapTarget._swapQueue[idx + 1];
-                    }
-                });
-            }
-        });
-
-        // Quadrant grid: content lives in one of the 4 cells made by the crosshair.
-        // Desktop follows hover; mobile follows taps outside the content.
-        var mainContent = document.getElementById('main-content');
-        function moveToQuadrant(x, y) {
-            mainContent.style.left = (x < window.innerWidth / 2 ? 25 : 75) + '%';
-            mainContent.style.top = (y < window.innerHeight / 2 ? 25 : 75) + '%';
-        }
-        moveToQuadrant(0, 0);
         if (window.matchMedia('(hover: hover)').matches) {
             document.addEventListener('mousemove', function(e) {
-                moveToQuadrant(e.clientX, e.clientY);
+                setQuadrant(e.clientX, e.clientY);
             });
         } else {
             document.addEventListener('click', function(e) {
-                if (mainContent.contains(e.target)) return;
-                moveToQuadrant(e.clientX, e.clientY);
+                if (e.target.closest('a')) return;
+                setQuadrant(e.clientX, e.clientY);
             });
         }
 
@@ -725,7 +279,7 @@
             document.getElementById('location-name').textContent = locationName;
             currentTimezone = timezoneMap[locationName] || 'Europe/Copenhagen';
             updateTime();
-        });
+        }).catch(function() {});
 
         // Live local time
         var locationTime = document.getElementById('location-time');
