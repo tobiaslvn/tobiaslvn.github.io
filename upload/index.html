@@ -93,6 +93,42 @@
         .item .status.done { color: #6ec87a; }
         .item .status.error { color: #d06a6a; }
 
+        .section-label { font-size: 14px; font-weight: 400; color: #888; margin: 40px 0 16px; }
+
+        .gallery {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .g-item { position: relative; }
+        .g-item.busy { opacity: 0.35; pointer-events: none; }
+
+        .g-item img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 1;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #161616;
+        }
+
+        .g-item .del {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            margin: 0;
+            padding: 3px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+        }
+
+        .g-item .del:hover { background: #d06a6a; }
+
+        .gallery-empty { color: #555; font-size: 12px; }
+
         .foot { margin-top: 32px; display: flex; justify-content: space-between; }
         .foot a, .foot span { color: #444; font-size: 12px; text-decoration: none; cursor: pointer; }
         .foot a:hover, .foot span:hover { color: #888; }
@@ -118,6 +154,8 @@
         <div class="drop" id="drop">Drop images here or click to choose</div>
         <input type="file" id="file" accept="image/*" multiple style="display:none">
         <div class="queue" id="queue"></div>
+        <div class="section-label">On the site</div>
+        <div class="gallery" id="gallery"></div>
         <div class="foot">
             <a href="/">← back to site</a>
             <span onclick="clearToken()">forget token</span>
@@ -133,14 +171,23 @@
     var MAX_DIM = 2400;      // longest edge after resize
     var QUALITY = 0.85;
 
+    var RAW = 'https://raw.githubusercontent.com/' + OWNER + '/' + REPO + '/' + BRANCH;
+
     var token = localStorage.getItem('tl_gh_token') || '';
-    var uploading = false;
-    var pending = [];
+
+    // All repo writes (uploads and deletes) run one at a time through this
+    // chain so manifest updates never race each other.
+    var chain = Promise.resolve();
+    function enqueue(task) {
+        chain = chain.then(task, task);
+        return chain;
+    }
 
     init();
 
     function init() {
         document.getElementById(token ? 'uploader' : 'auth').style.display = 'block';
+        if (token) loadGallery();
     }
 
     function saveToken() {
@@ -150,6 +197,7 @@
         token = v;
         document.getElementById('auth').style.display = 'none';
         document.getElementById('uploader').style.display = 'block';
+        loadGallery();
     }
 
     function clearToken() {
@@ -180,32 +228,25 @@
             row.querySelector('.name').textContent = f.name;
             row.querySelector('img').src = URL.createObjectURL(f);
             document.getElementById('queue').prepend(row);
-            pending.push({ file: f, row: row });
+            enqueue(function() { return runUpload(f, row); });
         });
-        processQueue();
     }
 
-    // Uploads run one at a time so manifest updates don't race each other
-    async function processQueue() {
-        if (uploading) return;
-        uploading = true;
-        while (pending.length) {
-            var job = pending.shift();
-            var status = job.row.querySelector('.status');
-            try {
-                status.textContent = 'processing…';
-                var img = await prepareImage(job.file);
-                status.textContent = 'uploading…';
-                await uploadPhoto(img);
-                status.textContent = 'live ✓';
-                status.className = 'status done';
-            } catch (err) {
-                console.error(err);
-                status.textContent = err.message || 'failed';
-                status.className = 'status error';
-            }
+    async function runUpload(file, row) {
+        var status = row.querySelector('.status');
+        try {
+            status.textContent = 'processing…';
+            var img = await prepareImage(file);
+            status.textContent = 'uploading…';
+            await uploadPhoto(img);
+            status.textContent = 'live ✓';
+            status.className = 'status done';
+            loadGallery();
+        } catch (err) {
+            console.error(err);
+            status.textContent = err.message || 'failed';
+            status.className = 'status error';
         }
-        uploading = false;
     }
 
     // Downscale + convert to JPEG. Falls back to the original bytes if the
@@ -294,6 +335,79 @@
         });
         var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(manifest, null, 2) + '\n')));
         await putFile('photos/manifest.json', b64, 'Update photo manifest', sha);
+    }
+
+    // Gallery of photos already on the site
+    async function fetchManifest() {
+        var res = await gh('photos/manifest.json?ref=' + BRANCH);
+        if (!res.ok) return { manifest: [], sha: null };
+        var d = await res.json();
+        var manifest = [];
+        try { manifest = JSON.parse(atob(d.content.replace(/\n/g, ''))); } catch (e) {}
+        return { manifest: manifest, sha: d.sha };
+    }
+
+    async function loadGallery() {
+        var wrap = document.getElementById('gallery');
+        try {
+            var m = await fetchManifest();
+            wrap.innerHTML = '';
+            if (!m.manifest.length) {
+                wrap.innerHTML = '<div class="gallery-empty">No photos yet.</div>';
+                return;
+            }
+            m.manifest.forEach(function(p) {
+                var item = document.createElement('div');
+                item.className = 'g-item';
+                var img = document.createElement('img');
+                img.src = RAW + p.src;   // raw.githubusercontent: visible before Pages finishes deploying
+                img.loading = 'lazy';
+                var del = document.createElement('button');
+                del.className = 'del';
+                del.textContent = 'delete';
+                del.onclick = function() { deletePhoto(p, item); };
+                item.appendChild(img);
+                item.appendChild(del);
+                wrap.appendChild(item);
+            });
+        } catch (err) {
+            console.error(err);
+            wrap.innerHTML = '<div class="gallery-empty">' + (err.message || 'Could not load photos.') + '</div>';
+        }
+    }
+
+    function deletePhoto(p, item) {
+        if (!confirm('Delete this photo from the site?')) return;
+        item.classList.add('busy');
+        enqueue(async function() {
+            try {
+                var path = p.src.replace(/^\//, '');
+
+                // Remove the image file (needs its current sha)
+                var res = await gh(path + '?ref=' + BRANCH);
+                if (res.ok) {
+                    var d = await res.json();
+                    var delRes = await gh(path, {
+                        method: 'DELETE',
+                        body: JSON.stringify({ message: 'Delete photo ' + path, sha: d.sha, branch: BRANCH })
+                    });
+                    if (!delRes.ok) throw new Error('delete failed (' + delRes.status + ')');
+                }
+
+                // Remove it from the manifest
+                var m = await fetchManifest();
+                var next = m.manifest.filter(function(e) { return e.src !== p.src; });
+                var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(next, null, 2) + '\n')));
+                await putFile('photos/manifest.json', b64, 'Update photo manifest', m.sha);
+
+                item.remove();
+                if (!next.length) loadGallery();
+            } catch (err) {
+                console.error(err);
+                item.classList.remove('busy');
+                alert(err.message || 'Delete failed');
+            }
+        });
     }
 </script>
 </body>
