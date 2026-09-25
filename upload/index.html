@@ -318,6 +318,21 @@
         });
     }
 
+    // Retry helper: GitHub can 409 when commits land in quick succession
+    // (each upload is two commits). Backoff and retry; auth errors don't retry.
+    function sleep(ms) { return new Promise(function(r) { setTimeout(r, ms); }); }
+
+    async function withRetry(fn) {
+        for (var attempt = 0; ; attempt++) {
+            try {
+                return await fn();
+            } catch (e) {
+                if (attempt >= 3 || /token rejected/.test(e.message || '')) throw e;
+                await sleep(1000 * Math.pow(2, attempt));
+            }
+        }
+    }
+
     // GitHub Contents API
     async function gh(path, opts) {
         opts = opts || {};
@@ -339,25 +354,25 @@
     }
 
     async function uploadPhoto(img) {
-        await putFile(img.path, img.base64, 'Add photo ' + img.path);
-
-        // Append to manifest so the homepage can render it
-        var res = await gh('photos/manifest.json?ref=' + BRANCH);
-        var manifest = [];
-        var sha = null;
-        if (res.ok) {
-            var d = await res.json();
-            sha = d.sha;
-            try { manifest = JSON.parse(atob(d.content.replace(/\n/g, ''))); } catch (e) {}
-        }
-        manifest.unshift({
-            src: '/' + img.path,
-            width: img.width,
-            height: img.height,
-            added: new Date().toISOString()
+        await withRetry(function() {
+            return putFile(img.path, img.base64, 'Add photo ' + img.path);
         });
-        var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(manifest, null, 2) + '\n')));
-        await putFile('photos/manifest.json', b64, 'Update photo manifest', sha);
+
+        // Append to manifest so the homepage can render it. The manifest is
+        // re-fetched on every attempt so a retry never writes with a stale sha.
+        await withRetry(async function() {
+            var m = await fetchManifest();
+            if (!m.manifest.some(function(e) { return e.src === '/' + img.path; })) {
+                m.manifest.unshift({
+                    src: '/' + img.path,
+                    width: img.width,
+                    height: img.height,
+                    added: new Date().toISOString()
+                });
+            }
+            var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(m.manifest, null, 2) + '\n')));
+            await putFile('photos/manifest.json', b64, 'Update photo manifest', m.sha);
+        });
     }
 
     // Gallery of photos already on the site
@@ -407,24 +422,29 @@
                 var path = p.src.replace(/^\//, '');
 
                 // Remove the image file (needs its current sha)
-                var res = await gh(path + '?ref=' + BRANCH);
-                if (res.ok) {
+                await withRetry(async function() {
+                    var res = await gh(path + '?ref=' + BRANCH);
+                    if (!res.ok) return;   // already gone
                     var d = await res.json();
                     var delRes = await gh(path, {
                         method: 'DELETE',
                         body: JSON.stringify({ message: 'Delete photo ' + path, sha: d.sha, branch: BRANCH })
                     });
                     if (!delRes.ok) throw new Error('delete failed (' + delRes.status + ')');
-                }
+                });
 
                 // Remove it from the manifest
-                var m = await fetchManifest();
-                var next = m.manifest.filter(function(e) { return e.src !== p.src; });
-                var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(next, null, 2) + '\n')));
-                await putFile('photos/manifest.json', b64, 'Update photo manifest', m.sha);
+                var remaining;
+                await withRetry(async function() {
+                    var m = await fetchManifest();
+                    var next = m.manifest.filter(function(e) { return e.src !== p.src; });
+                    var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(next, null, 2) + '\n')));
+                    await putFile('photos/manifest.json', b64, 'Update photo manifest', m.sha);
+                    remaining = next.length;
+                });
 
                 item.remove();
-                if (!next.length) loadGallery();
+                if (!remaining) loadGallery();
             } catch (err) {
                 console.error(err);
                 item.classList.remove('busy');
