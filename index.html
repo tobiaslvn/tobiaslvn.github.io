@@ -4,179 +4,90 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tobias Levin</title>
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><line x1='50' y1='15' x2='50' y2='85' stroke='black' stroke-width='12' stroke-linecap='round'/><line x1='15' y1='50' x2='85' y2='50' stroke='black' stroke-width='12' stroke-linecap='round'/></svg>">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
-            font-family: 'Instrument Sans', sans-serif;
-            background: #fff;
-            color: #0b0b0b;
+            background: #0B0B0B;
             height: 100%;
-            overflow: hidden;
         }
 
-        a {
-            color: inherit;
-            text-decoration: none;
-            transition: color 0.2s ease;
-        }
-
-        /* Full-screen crosshair that follows the mouse, replacing the cursor */
         .crosshair {
             position: fixed;
-            background: #a8a8a5;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 13px;
+            height: 13px;
             pointer-events: none;
+            mix-blend-mode: difference;
+            z-index: 1;
         }
 
-        .crosshair.vertical {
-            left: 50vw;
+        .crosshair::before,
+        .crosshair::after {
+            content: '';
+            position: absolute;
+            background: #fff;
+        }
+
+        .crosshair::before {
             top: 0;
+            left: 50%;
             width: 1px;
-            height: 100vh;
-            transform: scaleY(0);
-            animation: crosshair-grow-v 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            height: 100%;
+            transform: translateX(-50%);
         }
 
-        .crosshair.horizontal {
-            top: 50vh;
+        .crosshair::after {
+            top: 50%;
             left: 0;
+            width: 100%;
             height: 1px;
-            width: 100vw;
-            transform: scaleX(0);
-            animation: crosshair-grow-h 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform: translateY(-50%);
         }
 
-        @keyframes crosshair-grow-v {
-            to { transform: scaleY(1); }
+        .photos {
+            width: min(90vw, 700px);
+            margin: 0 auto;
+            padding: 18vh 0;
         }
 
-        @keyframes crosshair-grow-h {
-            to { transform: scaleX(1); }
+        .photos img {
+            display: block;
+            width: 100%;
+            height: auto;
+            margin-bottom: 14vh;
         }
 
-        /* Bottom bar: live location + contact links */
-        #location {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 7px;
-            font-size: 16px;
-            color: #0b0b0b;
-            position: fixed;
-            bottom: 60px;
-            left: 60px;
-            opacity: 0;
-            animation: fade-in 0.45s ease forwards;
-            animation-delay: 300ms;
-        }
-
-        #location a { margin-left: 14px; }
-
-        #location a:hover { color: #a8a8a5; }
-
-        .live-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: #4ade80;
-            flex-shrink: 0;
-            animation: live-pulse 2s ease-out infinite;
-        }
-
-        @keyframes live-pulse {
-            0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
-            70%  { box-shadow: 0 0 0 6px rgba(74, 222, 128, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
-        }
-
-        @keyframes fade-in {
-            to { opacity: 1; }
-        }
-
-        @media (max-width: 768px) {
-            #location { font-size: 11px; bottom: 30px; left: 30px; }
-        }
+        .photos img:last-child { margin-bottom: 0; }
     </style>
 </head>
 <body>
 
-    <div class="crosshair vertical"></div>
-    <div class="crosshair horizontal"></div>
+    <div class="crosshair"></div>
 
-    <div id="location">
-        <span class="live-dot"></span>
-        <span id="location-name">Copenhagen</span>
-        <span id="location-time" style="margin-left:4px;"></span>
-        <a id="email-footer-link" href="#">Email</a>
-        <a href="https://instagram.com/tobiaslevins" target="_blank">Instagram</a>
-    </div>
+    <div class="photos" id="photos"></div>
 
     <script>
-        var emailHref = 'mai' + 'lto:' + 'more' + '@' + 'tobiaslevin.com';
-        document.getElementById('email-footer-link').href = emailHref;
-
-        // Location + timezone from API
-        var timezoneMap = {
-            'Copenhagen': 'Europe/Copenhagen',
-            'Paris': 'Europe/Paris',
-            'Los Angeles': 'America/Los_Angeles',
-            'New York': 'America/New_York',
-            'Tokyo': 'Asia/Tokyo'
-        };
-        var currentTimezone = 'Europe/Copenhagen';
-        fetch('/api/config').then(function(r) { return r.json(); }).then(function(d) {
-            var today = new Date().toISOString().split('T')[0];
-            var travel = [];
-            try { travel = JSON.parse(d.travel || '[]'); } catch(e) {}
-            var current = travel.find(function(t) { return today >= t.start && today <= t.end; });
-            var locationName = current ? current.city : (d.location || 'Copenhagen');
-            document.getElementById('location-name').textContent = locationName;
-            currentTimezone = timezoneMap[locationName] || 'Europe/Copenhagen';
-            updateTime();
-        }).catch(function() {});
-
-        // Live local time
-        var locationTime = document.getElementById('location-time');
-        function updateTime() {
-            locationTime.textContent = new Date().toLocaleTimeString('en-GB', {
-                timeZone: currentTimezone,
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        }
-        updateTime();
-        setInterval(updateTime, 1000);
-
-        var vertical = document.querySelector('.crosshair.vertical');
-        var horizontal = document.querySelector('.crosshair.horizontal');
-
-        // Crosshair eases toward the pointer — high lerp factor keeps it feeling instant
-        var targetX = window.innerWidth / 2, targetY = window.innerHeight / 2;
-        var x = targetX, y = targetY;
-
-        document.addEventListener('mousemove', function(e) {
-            targetX = e.clientX;
-            targetY = e.clientY;
-        });
-
-        document.addEventListener('touchmove', function(e) {
-            var t = e.touches[0];
-            targetX = t.clientX;
-            targetY = t.clientY;
-        }, { passive: true });
-
-        (function animate() {
-            x += (targetX - x) * 0.35;
-            y += (targetY - y) * 0.35;
-            vertical.style.left = x + 'px';
-            horizontal.style.top = y + 'px';
-            requestAnimationFrame(animate);
-        })();
+        fetch('/photos/manifest.json')
+            .then(function(res) { return res.ok ? res.json() : []; })
+            .then(function(photos) {
+                var wrap = document.getElementById('photos');
+                photos.forEach(function(p) {
+                    var img = document.createElement('img');
+                    img.src = p.src;
+                    img.loading = 'lazy';
+                    if (p.width && p.height) {
+                        img.width = p.width;
+                        img.height = p.height;
+                    }
+                    wrap.appendChild(img);
+                });
+            })
+            .catch(function() {});
     </script>
+
     <script type="module">
         // Dev-only: agentation feedback overlay (needs the Vite dev server)
         if (location.hostname === 'localhost') import('/src/agentation-widget.jsx');

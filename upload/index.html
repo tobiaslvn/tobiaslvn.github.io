@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload — Tobias Levin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0B0B0B;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+            font-size: 14px;
+            min-height: 100vh;
+            padding: 48px 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .wrap { width: 100%; max-width: 480px; }
+
+        h1 { font-size: 14px; font-weight: 400; margin-bottom: 32px; color: #888; }
+
+        input[type="password"] {
+            width: 100%;
+            background: #161616;
+            border: 1px solid #2a2a2a;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 14px;
+            padding: 10px 12px;
+            outline: none;
+        }
+
+        input[type="password"]:focus { border-color: #444; }
+
+        .hint { color: #555; font-size: 12px; line-height: 1.6; margin-top: 12px; }
+        .hint a { color: #888; }
+
+        button {
+            background: #fff;
+            color: #0B0B0B;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            padding: 10px 16px;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: 0.4; cursor: default; }
+
+        .drop {
+            border: 1px dashed #333;
+            border-radius: 10px;
+            padding: 64px 24px;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+            transition: border-color 0.15s, color 0.15s;
+        }
+
+        .drop.over { border-color: #fff; color: #fff; }
+
+        .queue { margin-top: 24px; }
+
+        .item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #1c1c1c;
+        }
+
+        .item img {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 4px;
+            background: #161616;
+        }
+
+        .item .name {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            color: #aaa;
+        }
+
+        .item .status { color: #555; font-size: 12px; flex-shrink: 0; }
+        .item .status.done { color: #6ec87a; }
+        .item .status.error { color: #d06a6a; }
+
+        .foot { margin-top: 32px; display: flex; justify-content: space-between; }
+        .foot a, .foot span { color: #444; font-size: 12px; text-decoration: none; cursor: pointer; }
+        .foot a:hover, .foot span:hover { color: #888; }
+    </style>
+</head>
+<body>
+<div class="wrap">
+
+    <div id="auth" style="display:none">
+        <h1>Paste a GitHub token to enable uploads</h1>
+        <input type="password" id="token" placeholder="github_pat_…" autocomplete="off">
+        <button onclick="saveToken()">Save</button>
+        <p class="hint">
+            Create a <a href="https://github.com/settings/personal-access-tokens/new" target="_blank">fine-grained token</a>
+            scoped to only the <strong>tobiaslvn.github.io</strong> repository, with
+            Repository&nbsp;permissions → Contents → <strong>Read and write</strong>.
+            The token is stored only in this browser.
+        </p>
+    </div>
+
+    <div id="uploader" style="display:none">
+        <h1>Drop photos to publish them to tobiaslevin.com</h1>
+        <div class="drop" id="drop">Drop images here or click to choose</div>
+        <input type="file" id="file" accept="image/*" multiple style="display:none">
+        <div class="queue" id="queue"></div>
+        <div class="foot">
+            <a href="/">← back to site</a>
+            <span onclick="clearToken()">forget token</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    var OWNER = 'tobiaslvn';
+    var REPO = 'tobiaslvn.github.io';
+    var BRANCH = 'main';
+    var MAX_DIM = 2400;      // longest edge after resize
+    var QUALITY = 0.85;
+
+    var token = localStorage.getItem('tl_gh_token') || '';
+    var uploading = false;
+    var pending = [];
+
+    init();
+
+    function init() {
+        document.getElementById(token ? 'uploader' : 'auth').style.display = 'block';
+    }
+
+    function saveToken() {
+        var v = document.getElementById('token').value.trim();
+        if (!v) return;
+        localStorage.setItem('tl_gh_token', v);
+        token = v;
+        document.getElementById('auth').style.display = 'none';
+        document.getElementById('uploader').style.display = 'block';
+    }
+
+    function clearToken() {
+        localStorage.removeItem('tl_gh_token');
+        location.reload();
+    }
+
+    // Drop zone
+    var drop = document.getElementById('drop');
+    var fileInput = document.getElementById('file');
+
+    drop.onclick = function() { fileInput.click(); };
+    fileInput.onchange = function() { addFiles(fileInput.files); fileInput.value = ''; };
+    drop.ondragover = function(e) { e.preventDefault(); drop.classList.add('over'); };
+    drop.ondragleave = function() { drop.classList.remove('over'); };
+    drop.ondrop = function(e) {
+        e.preventDefault();
+        drop.classList.remove('over');
+        addFiles(e.dataTransfer.files);
+    };
+
+    function addFiles(files) {
+        Array.prototype.forEach.call(files, function(f) {
+            if (!/^image\//.test(f.type)) return;
+            var row = document.createElement('div');
+            row.className = 'item';
+            row.innerHTML = '<img><span class="name"></span><span class="status">queued</span>';
+            row.querySelector('.name').textContent = f.name;
+            row.querySelector('img').src = URL.createObjectURL(f);
+            document.getElementById('queue').prepend(row);
+            pending.push({ file: f, row: row });
+        });
+        processQueue();
+    }
+
+    // Uploads run one at a time so manifest updates don't race each other
+    async function processQueue() {
+        if (uploading) return;
+        uploading = true;
+        while (pending.length) {
+            var job = pending.shift();
+            var status = job.row.querySelector('.status');
+            try {
+                status.textContent = 'processing…';
+                var img = await prepareImage(job.file);
+                status.textContent = 'uploading…';
+                await uploadPhoto(img);
+                status.textContent = 'live ✓';
+                status.className = 'status done';
+            } catch (err) {
+                console.error(err);
+                status.textContent = err.message || 'failed';
+                status.className = 'status error';
+            }
+        }
+        uploading = false;
+    }
+
+    // Downscale + convert to JPEG. Falls back to the original bytes if the
+    // browser can't decode the format (e.g. HEIC outside Safari).
+    async function prepareImage(file) {
+        var slug = file.name.toLowerCase()
+            .replace(/\.[^.]+$/, '')
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '')
+            .slice(0, 40) || 'photo';
+        var stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
+
+        try {
+            var bitmap = await createImageBitmap(file);
+            var scale = Math.min(1, MAX_DIM / Math.max(bitmap.width, bitmap.height));
+            var w = Math.round(bitmap.width * scale);
+            var h = Math.round(bitmap.height * scale);
+            var canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            canvas.getContext('2d').drawImage(bitmap, 0, 0, w, h);
+            var dataUrl = canvas.toDataURL('image/jpeg', QUALITY);
+            return {
+                path: 'photos/' + stamp + '-' + slug + '.jpg',
+                base64: dataUrl.split(',')[1],
+                width: w,
+                height: h
+            };
+        } catch (e) {
+            var ext = (file.name.match(/\.[^.]+$/) || ['.jpg'])[0].toLowerCase();
+            return {
+                path: 'photos/' + stamp + '-' + slug + ext,
+                base64: await fileToBase64(file),
+                width: null,
+                height: null
+            };
+        }
+    }
+
+    function fileToBase64(file) {
+        return new Promise(function(resolve, reject) {
+            var r = new FileReader();
+            r.onload = function() { resolve(r.result.split(',')[1]); };
+            r.onerror = reject;
+            r.readAsDataURL(file);
+        });
+    }
+
+    // GitHub Contents API
+    async function gh(path, opts) {
+        opts = opts || {};
+        opts.headers = {
+            'Authorization': 'Bearer ' + token,
+            'Accept': 'application/vnd.github+json'
+        };
+        var res = await fetch('https://api.github.com/repos/' + OWNER + '/' + REPO + '/contents/' + path, opts);
+        if (res.status === 401 || res.status === 403) throw new Error('token rejected — try “forget token”');
+        return res;
+    }
+
+    async function putFile(path, base64, message, sha) {
+        var body = { message: message, content: base64, branch: BRANCH };
+        if (sha) body.sha = sha;
+        var res = await gh(path, { method: 'PUT', body: JSON.stringify(body) });
+        if (!res.ok) throw new Error('upload failed (' + res.status + ')');
+        return res.json();
+    }
+
+    async function uploadPhoto(img) {
+        await putFile(img.path, img.base64, 'Add photo ' + img.path);
+
+        // Append to manifest so the homepage can render it
+        var res = await gh('photos/manifest.json?ref=' + BRANCH);
+        var manifest = [];
+        var sha = null;
+        if (res.ok) {
+            var d = await res.json();
+            sha = d.sha;
+            try { manifest = JSON.parse(atob(d.content.replace(/\n/g, ''))); } catch (e) {}
+        }
+        manifest.unshift({
+            src: '/' + img.path,
+            width: img.width,
+            height: img.height,
+            added: new Date().toISOString()
+        });
+        var b64 = btoa(unescape(encodeURIComponent(JSON.stringify(manifest, null, 2) + '\n')));
+        await putFile('photos/manifest.json', b64, 'Update photo manifest', sha);
+    }
+</script>
+</body>
+</html>
