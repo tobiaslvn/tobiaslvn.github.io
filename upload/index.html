@@ -90,6 +90,18 @@
         }
 
         .item .status { color: #555; font-size: 12px; flex-shrink: 0; }
+
+        .item .retry {
+            margin: 0;
+            padding: 3px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            background: #2a2a2a;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .item .retry:hover { background: #444; }
         .item .status.done { color: #6ec87a; }
         .item .status.error { color: #d06a6a; }
 
@@ -246,6 +258,16 @@
             console.error(err);
             status.textContent = err.message || 'failed';
             status.className = 'status error';
+            var retry = document.createElement('button');
+            retry.className = 'retry';
+            retry.textContent = 'retry';
+            retry.onclick = function() {
+                retry.remove();
+                status.className = 'status';
+                status.textContent = 'queued';
+                enqueue(function() { return runUpload(file, row); });
+            };
+            row.appendChild(retry);
         }
     }
 
